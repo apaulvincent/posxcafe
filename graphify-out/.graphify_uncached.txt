@@ -1,0 +1,7 @@
+D:\Development\posxcafe\README.md
+D:\Development\posxcafe\index.html
+D:\Development\posxcafe\public\favicon.svg
+D:\Development\posxcafe\public\icons.svg
+D:\Development\posxcafe\src\assets\hero.png
+D:\Development\posxcafe\src\assets\react.svg
+D:\Development\posxcafe\src\assets\vite.svg

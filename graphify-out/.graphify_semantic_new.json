@@ -1,0 +1,385 @@
+{
+  "nodes": [
+    {
+      "id": "readme_react",
+      "label": "React",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_vite",
+      "label": "Vite",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_typescript",
+      "label": "TypeScript",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_oxlint",
+      "label": "Oxlint",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_vitejs_plugin_react",
+      "label": "@vitejs/plugin-react",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "source_url": "https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react",
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_oxc",
+      "label": "Oxc",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "source_url": "https://oxc.rs",
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_vitejs_plugin_react_swc",
+      "label": "@vitejs/plugin-react-swc",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "source_url": "https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc",
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_swc",
+      "label": "SWC",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "source_url": "https://swc.rs/",
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_react_compiler",
+      "label": "React Compiler",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "source_url": "https://react.dev/learn/react-compiler/installation",
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Not enabled because of its impact on dev & build performances."
+    },
+    {
+      "id": "readme_oxlint_tsgolint",
+      "label": "oxlint-tsgolint",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "index_html",
+      "label": "index.html",
+      "file_type": "document",
+      "source_file": "D:\\Development\\posxcafe\\index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "index_main_tsx",
+      "label": "/src/main.tsx",
+      "file_type": "code",
+      "source_file": "D:\\Development\\posxcafe\\index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "index_root_div",
+      "label": "div#root",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "index_posxcafe_title",
+      "label": "posxcafe",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_favicon_favicon",
+      "label": "Favicon",
+      "file_type": "image",
+      "source_file": "D:\\Development\\posxcafe\\public\\favicon.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_icons_bluesky_icon",
+      "label": "Bluesky Icon",
+      "file_type": "code",
+      "source_file": "D:\\Development\\posxcafe\\public\\icons.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_icons_discord_icon",
+      "label": "Discord Icon",
+      "file_type": "code",
+      "source_file": "D:\\Development\\posxcafe\\public\\icons.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_icons_documentation_icon",
+      "label": "Documentation Icon",
+      "file_type": "code",
+      "source_file": "D:\\Development\\posxcafe\\public\\icons.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_icons_github_icon",
+      "label": "GitHub Icon",
+      "file_type": "code",
+      "source_file": "D:\\Development\\posxcafe\\public\\icons.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_icons_social_icon",
+      "label": "Social Icon",
+      "file_type": "code",
+      "source_file": "D:\\Development\\posxcafe\\public\\icons.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_icons_x_icon",
+      "label": "X Icon",
+      "file_type": "code",
+      "source_file": "D:\\Development\\posxcafe\\public\\icons.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "src_assets_hero_hero_image",
+      "label": "Hero Image",
+      "file_type": "image",
+      "source_file": "D:\\Development\\posxcafe\\src\\assets\\hero.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "src_assets_hero_layered_stack",
+      "label": "Isometric Layered Stack",
+      "file_type": "concept",
+      "source_file": "D:\\Development\\posxcafe\\src\\assets\\hero.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "src_assets_react_logo",
+      "label": "React Logo",
+      "file_type": "image",
+      "source_file": "D:\\Development\\posxcafe\\src\\assets\\react.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "src_assets_vite_vite",
+      "label": "Vite",
+      "file_type": "image",
+      "source_file": "D:\\Development\\posxcafe\\src\\assets\\vite.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "readme_vitejs_plugin_react",
+      "target": "readme_oxc",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "readme_vitejs_plugin_react_swc",
+      "target": "readme_swc",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "index_html",
+      "target": "index_main_tsx",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Development\\posxcafe\\index.html",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "index_html",
+      "target": "index_root_div",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Development\\posxcafe\\index.html",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "index_html",
+      "target": "index_posxcafe_title",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Development\\posxcafe\\index.html",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "readme_oxlint_tsgolint",
+      "target": "readme_oxlint",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Development\\posxcafe\\README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "src_assets_hero_hero_image",
+      "target": "src_assets_hero_layered_stack",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\Development\\posxcafe\\src\\assets\\hero.png",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "readme_template_stack",
+      "label": "posxcafe template stack",
+      "nodes": [
+        "readme_react",
+        "readme_vite",
+        "readme_typescript",
+        "readme_oxlint"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\Development\\posxcafe\\README.md"
+    },
+    {
+      "id": "public_icons_social_platform_icons",
+      "label": "Social Platform Icons",
+      "nodes": [
+        "public_icons_bluesky_icon",
+        "public_icons_discord_icon",
+        "public_icons_github_icon",
+        "public_icons_x_icon",
+        "public_icons_social_icon"
+      ],
+      "relation": "form",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\Development\\posxcafe\\public\\icons.svg"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

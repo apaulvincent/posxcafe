@@ -1,22 +1,42 @@
-# Olive Grounds Coffee POS System
+# POSXCAFE POS System
 
-A fast, modern, and **offline-first** Point of Sale (POS) web application designed specifically for **Olive Grounds Coffee**. This system allows the cafe to seamlessly take orders, manage inventory, and process sales even when the internet goes down, automatically syncing data to the cloud once a connection is restored.
+A fast, modern, and **offline-first** Point of Sale (POS) Progressive Web Application (PWA). 
 
-## 🌟 Key Features
+---
 
-- **Offline-First Architecture**: Powered by [Dexie.js](https://dexie.org/), the POS remains fully functional during internet outages. Orders and notifications are cached locally and synced to the cloud via background workers when reconnected.
-- **Real-Time Syncing**: Uses [Supabase](https://supabase.com/) to synchronize products, categories, orders, and system notifications across multiple terminals in real-time.
-- **Interactive POS Terminal**: An intuitive cart interface supporting quick category filtering, search, and dynamic discount calculations (percentage or flat amount).
-- **Order Management & Notifications**: Track "Pending" and "Ready" orders with real-time push notifications for new online orders or ready statuses.
-- **Hardware Integrations**: ESC/POS thermal receipt printer support built-in for fast kitchen and customer ticketing.
-- **Admin Dashboard**: Full CRUD interface for managing the product catalog and categories.
+## 🎯 The Problem It Solves
+
+Modern cafes and retail environments increasingly rely on cloud-based POS systems for centralized management, multi-device syncing, and real-time analytics. However, typical cloud POS systems become sluggish or fail completely when the internet connection drops or becomes unstable. This leads to lost sales, frustrated staff, and a poor customer experience.
+
+**This system solves the "cloud dependency" problem by utilizing a local-first architecture.** It is designed to operate exactly like a traditional, locally-installed POS system when the network goes down, but retains all the benefits of a modern cloud application when connected. Staff can continue ringing up customers, modifying the cart, generating order numbers, and printing receipts without interruption, regardless of internet stability.
+
+## 🌟 Core Capabilities
+
+- **Resilient Offline Mode**: Continue taking orders, browsing the product catalog, and managing the cart even during complete internet outages. The app runs directly out of the browser's cache and local database.
+- **Background Auto-Sync**: Once the connection is restored, the POS automatically queues and synchronizes local changes (like new offline orders or status updates) with the cloud backend without requiring manual intervention.
+- **Real-Time Cross-Terminal Sync**: Uses WebSockets to synchronize live orders, product inventory updates, and system notifications across multiple iPads or POS terminals instantly.
+- **Progressive Web App (PWA)**: Installable directly to the device (Windows, iPadOS, Android) to act like a native application with no browser UI, a dedicated icon, and isolated local storage.
+- **Lightning-Fast POS Interface**: An intuitive cart interface supporting quick category filtering, global search, and dynamic discount calculations (percentage or flat amounts).
+- **Thermal Receipt Printing**: Built-in integrations for ESC/POS thermal receipt printers for fast kitchen ticketing and customer receipts.
+- **Admin & Catalog Management**: A comprehensive dashboard for managing the product catalog, categorized items, and sales statistics. Includes an embedded image cropper and media library for product photos.
+- **Advanced Security**: Integrated Multi-Factor Authentication (MFA) and OTP support for secure staff and admin logins.
+
+## 🛠️ Technicalities & Architecture
+
+The application is built on a **Local-First, Sync-Later** architecture, bridging the gap between local speed and cloud redundancy.
+
+- **Local Storage Layer (`Dexie.js`)**: Instead of fetching data directly from the cloud on every render, the app reads and writes exclusively to a local IndexedDB database using `Dexie.js`. This guarantees zero-latency UI updates and absolute offline capability.
+- **Cloud Backend (`Supabase`)**: Serves as the central source of truth. It utilizes a PostgreSQL database for persistent storage and Supabase Realtime for WebSocket subscriptions.
+- **Sync Engine**: A custom built synchronization engine (`src/lib/sync.ts`) listens to both Dexie observability hooks and Supabase Realtime channels. It manages local mutations, handles background queuing, and automatically pushes local changes to the cloud whenever `navigator.onLine` is true.
+- **Service Workers**: Powered by `vite-plugin-pwa`, the application aggressively caches HTML, JS, CSS, and static assets so the app can be loaded entirely from disk on subsequent visits without hitting the network.
+- **Frontend Stack**: Built with React 18, TypeScript, and Vite for lightning-fast HMR and optimized builds. The UI is constructed with Tailwind CSS and Radix UI (`shadcn/ui`) for accessible, unstyled components.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js (v18 or higher)
 - npm, yarn, or pnpm
-- A Supabase project
+- A Supabase project (with PostgreSQL database setup)
 
 ### Installation
 
@@ -32,7 +52,7 @@ A fast, modern, and **offline-first** Point of Sale (POS) web application design
    ```
 
 3. Configure Environment Variables:
-   Create a `.env.local` file in the root directory based on the provided `.env` template:
+   Create a `.env.local` file in the root directory based on the provided `.env.example` template:
    ```env
    VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -43,27 +63,7 @@ A fast, modern, and **offline-first** Point of Sale (POS) web application design
    npm run dev
    ```
 
-## 🛠️ Tech Stack
-
-- **Frontend Framework**: [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **UI Components**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI)
-- **Local Database**: [Dexie.js](https://dexie.org/) (IndexedDB wrapper)
-- **Cloud Backend**: [Supabase](https://supabase.com/) (PostgreSQL & Realtime)
-
-## 📁 Repository Structure
-
-- `/src/components` - Reusable UI components (buttons, dialogs, dropdowns).
-- `/src/pages` - Main application views (POS, Dashboard, Admin panels).
-- `/src/hooks` - Custom React hooks for data fetching and state management (`useOrders`, `useNotifications`, etc.).
-- `/src/lib` - Core utility libraries (Dexie DB configuration, Supabase client, Sync engine).
-
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome!
 Feel free to check the issues page if you want to contribute.
-
-## 📄 License
-
-This project is licensed under the MIT License.

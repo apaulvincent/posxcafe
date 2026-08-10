@@ -1,17 +1,18 @@
+import { Edit, Plus, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
-import { useCategories, type Category } from '../../hooks/useCategories';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { Checkbox } from '../../components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '../../components/ui/dialog';
+import { Input } from '../../components/ui/input';
+import { useCategories, type Category } from '../../hooks/useCategories';
 
 export default function Categories() {
   const { categories, loading, addCategory, updateCategory, deleteCategory } = useCategories();
@@ -137,12 +138,12 @@ export default function Categories() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-[400px] pb-0 pt-4">
           <DialogHeader>
             <DialogTitle>{editingCategory ? 'Edit Category' : 'Add New Category'}</DialogTitle>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit} className="space-y-4 py-4">
+          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
             <div className="space-y-2">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Name</label>
               <Input 
@@ -173,15 +174,13 @@ export default function Categories() {
               />
             </div>
             
-            <div className="flex items-center gap-2 mt-4">
-              <input 
-                type="checkbox" 
+            <div className="flex items-center gap-3 mt-4">
+              <Checkbox 
                 id="alert-toggle" 
                 checked={alert} 
-                onChange={e => setAlert(e.target.checked)}
-                className="rounded border-border text-primary focus:ring-primary"
+                onChange={e => setAlert((e.target as HTMLInputElement).checked)}
               />
-              <label htmlFor="alert-toggle" className="text-sm font-semibold">Needs Attention (Alert State)</label>
+              <label htmlFor="alert-toggle" className="text-sm font-semibold cursor-pointer">Needs Attention (Alert State)</label>
             </div>
 
             <DialogFooter className="pt-4">

@@ -6,6 +6,7 @@ export type LocalCategory = {
   slug: string;
   status_text: string;
   alert: boolean;
+  sync_status?: 'synced' | 'pending';
 };
 
 export type LocalProduct = {
@@ -15,6 +16,7 @@ export type LocalProduct = {
   price: number;
   image_url: string;
   image_urls?: string[];
+  sync_status?: 'synced' | 'pending';
 };
 
 export type LocalOrder = {
@@ -68,6 +70,10 @@ class PosDatabase extends Dexie {
       orders: 'id, sync_status, created_at', 
       orderItems: '++id, order_id',
       notifications: 'id, is_read, sync_status, created_at'
+    });
+    this.version(3).stores({
+      categories: 'id, slug, sync_status', 
+      products: 'id, category_id, sync_status'
     });
   }
 }

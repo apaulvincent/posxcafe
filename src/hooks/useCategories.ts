@@ -14,7 +14,8 @@ export function useCategories() {
   const addCategory = async (category: Omit<LocalCategory, 'id'>) => {
     const newCategory = {
       ...category,
-      id: crypto.randomUUID()
+      id: crypto.randomUUID(),
+      sync_status: 'pending' as const
     };
     await db.categories.add(newCategory);
     if (navigator.onLine) {
@@ -23,7 +24,7 @@ export function useCategories() {
   };
 
   const updateCategory = async (id: string, updates: Partial<LocalCategory>) => {
-    await db.categories.update(id, updates);
+    await db.categories.update(id, { ...updates, sync_status: 'pending' });
     if (navigator.onLine) {
       import('../lib/sync').then(({ syncUp }) => syncUp());
     }

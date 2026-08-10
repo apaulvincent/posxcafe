@@ -1,30 +1,31 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Coffee, Search, Bell, Loader2, Package, Layers, ClipboardList } from 'lucide-react';
-import { useAuth } from './hooks/useAuth';
-import { useMFA } from './hooks/useMFA';
-import Dashboard from './pages/Dashboard';
-import POS from './pages/POS';
-import Login from './pages/Login';
-import Profile from './pages/Profile';
-import Products from './pages/admin/Products';
-import Categories from './pages/admin/Categories';
-import Orders from './pages/admin/Orders';
-import TrackOrder from './pages/TrackOrder';
-import { useOrders } from './hooks/useOrders';
-import { syncAll } from './lib/sync';
-import { Button } from './components/ui/button';
-import { Input } from './components/ui/input';
-import { Badge } from './components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
+import { Bell, ClipboardList, Coffee, Layers, LayoutDashboard, Loader2, Package } from 'lucide-react';
+import React from 'react';
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { GlobalSearch } from './components/GlobalSearch';
+import { Badge } from './components/ui/badge';
+import { Button } from './components/ui/button';
+import { useAuth } from './hooks/useAuth';
+import { useMFA } from './hooks/useMFA';
+import { useOrders } from './hooks/useOrders';
+import { syncAll } from './lib/sync';
+import Categories from './pages/admin/Categories';
+import Orders from './pages/admin/Orders';
+import Products from './pages/admin/Products';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import POS from './pages/POS';
+import Profile from './pages/Profile';
+import TrackOrder from './pages/TrackOrder';
+
 
 import { useNotifications } from './hooks/useNotifications';
 
@@ -32,6 +33,10 @@ const Topbar = ({ profile }: { profile: any }) => {
   const { totalOrdersToday, pendingOrdersCount } = useOrders();
   const { notifications, unreadCount, markAsRead, clearOldNotifications } = useNotifications();
   const [isOnline, setIsOnline] = React.useState(navigator.onLine);
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
 
   React.useEffect(() => {
     clearOldNotifications();
@@ -52,30 +57,22 @@ const Topbar = ({ profile }: { profile: any }) => {
     };
   }, []);
 
-  const dateStr = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-
+  const d = new Date();
+  const dateStr = `${d.toLocaleDateString('en-GB', { weekday: 'long' })}, ${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`;
   return (
     <header className="flex items-center justify-between w-full h-20">
       <div className="flex items-center gap-8">
-        <div className="font-extrabold text-primary leading-none text-xl tracking-tight">
-          OLIVE<br/>
-          GROUNDS<br/>
-          COFFEE
+        <div className="font-extrabold text-primary leading-none text-3xl tracking-tight">
+          OLIVE's<br/>
+          CAFE
         </div>
         <div className="text-sm font-medium text-primary">
           {dateStr}
         </div>
       </div>
       
-      <div className="flex-1 max-w-2xl px-8">
-        <div className="relative flex items-center">
-          <Search className="absolute left-4 text-muted-foreground" size={20} />
-          <Input 
-            className="w-full pl-12 h-12 rounded-full bg-card border-none shadow-sm text-base placeholder:text-muted-foreground" 
-            placeholder="Search" 
-          />
-          <div className="absolute right-4 text-sm font-medium text-primary">⌘K</div>
-        </div>
+      <div className="flex-1 max-w-2xl px-8 flex justify-center">
+        <GlobalSearch />
       </div>
 
       <div className="flex items-center gap-6">
@@ -93,19 +90,19 @@ const Topbar = ({ profile }: { profile: any }) => {
         </div>
         
         <Link to="/dashboard">
-          <Button variant="outline" className="rounded-full h-12 px-6 shadow-sm gap-2 font-semibold">
+          <div className="flex items-center gap-2 bg-card h-[52px] px-6 rounded-full shadow-sm hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer font-bold text-sm">
             Report <LayoutDashboard size={18} />
-          </Button>
+          </div>
         </Link>
 
         <DropdownMenu onOpenChange={(open) => { if (open) markAsRead(); }}>
-          <DropdownMenuTrigger render={
-            <Button variant="outline" size="icon" className="rounded-full w-12 h-12 shadow-sm relative" />
-          }>
-            <Bell size={20} />
-            {unreadCount > 0 && (
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-destructive rounded-full"></span>
-            )}
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center justify-center w-[52px] h-[52px] bg-card rounded-full shadow-sm hover:ring-2 hover:ring-primary/20 transition-all relative">
+              <Bell size={20} />
+              {unreadCount > 0 && (
+                <span className="absolute top-3.5 right-3.5 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-card"></span>
+              )}
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80 p-4 max-h-[80vh] overflow-y-auto">
             <DropdownMenuGroup>
@@ -130,7 +127,13 @@ const Topbar = ({ profile }: { profile: any }) => {
 
         <Link to="/profile">
           <div className="flex items-center gap-3 bg-card p-1.5 pr-4 rounded-full shadow-sm hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer">
-            <img src={profile?.avatar_url || "https://i.pravatar.cc/150?u=a042581f4e29026704d"} alt="User" className="w-10 h-10 rounded-full object-cover" />
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="User" className="w-10 h-10 rounded-full object-cover" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                {getInitials(profile?.full_name || 'Staff')}
+              </div>
+            )}
             <div className="flex flex-col">
               <span className="text-sm font-bold leading-tight">{profile?.full_name || 'Staff'}</span>
               <span className="text-xs text-muted-foreground capitalize">{profile?.role || 'cashier'}</span>

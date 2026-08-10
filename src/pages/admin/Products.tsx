@@ -1,19 +1,29 @@
-import React, { useState, useRef } from 'react';
-import { Plus, Search, Edit, Trash2, X, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { useProducts, type Product } from '../../hooks/useProducts';
-import { useCategories } from '../../hooks/useCategories';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Card } from '../../components/ui/card';
+import imageCompression from 'browser-image-compression';
+import { Edit, Image as ImageIcon, Library, Loader2, Plus, Search, Trash2, X } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { ImageCropperModal } from '../../components/ImageCropperModal';
+import { MediaLibraryModal } from '../../components/MediaLibraryModal';
 import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '../../components/ui/dialog';
-import { supabase } from '../../lib/supabase';
+import { Input } from '../../components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import { useCategories } from '../../hooks/useCategories';
+import { useProducts, type Product } from '../../hooks/useProducts';
+import { getStoragePathFromUrl, supabase } from '../../lib/supabase';
 
 export default function Products() {
   const { products, loading, addProduct, updateProduct, deleteProduct } = useProducts();
@@ -30,6 +40,12 @@ export default function Products() {
   const [price, setPrice] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [currentFileExt, setCurrentFileExt] = useState<string>('jpg');
+
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,42 +85,65 @@ export default function Products() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
+    const ext = file.name.split('.').pop() || 'jpg';
+    setCurrentFileExt(ext);
+
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      setCropImageSrc(reader.result?.toString() || null);
+      setCropperOpen(true);
+    });
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleCropComplete = async (croppedFile: File) => {
     setIsUploading(true);
     try {
       const newUrls = [...imageUrls];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-        const filePath = `products/${fileName}`;
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${currentFileExt}`;
+      const filePath = `products/${fileName}`;
 
-        // Ensure you have a 'products' bucket in Supabase storage, or use a default one
-        const { error } = await supabase.storage.from('images').upload(filePath, file);
-        
-        if (error) {
-          console.error("Upload error:", error);
-          // If offline or bucket doesn't exist, fallback to object URL for demo purposes
-          const objectUrl = URL.createObjectURL(file);
-          newUrls.push(objectUrl);
-        } else {
-          const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(filePath);
-          newUrls.push(publicUrl);
-        }
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 500,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(croppedFile, options);
+
+      const { error } = await supabase.storage.from('images').upload(filePath, compressedFile);
+      
+      if (error) {
+        console.error("Upload error:", error);
+        newUrls.push(URL.createObjectURL(croppedFile));
+      } else {
+        const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(filePath);
+        newUrls.push(publicUrl);
       }
       setImageUrls(newUrls);
     } catch (err) {
       console.error(err);
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
+  const handleLibrarySelect = (url: string) => {
+    setImageUrls([...imageUrls, url]);
+  };
+
   const removeImage = (index: number) => {
+    const urlToRemove = imageUrls[index];
+    if (urlToRemove) {
+      const path = getStoragePathFromUrl(urlToRemove);
+      if (path) {
+        supabase.storage.from('images').remove([path]).catch(console.error);
+      }
+    }
     setImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -208,12 +247,12 @@ export default function Products() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] pb-0 pt-4">
           <DialogHeader>
             <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit} className="space-y-4 py-4">
+          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
             <div className="space-y-2">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Product Name</label>
               <Input 
@@ -224,33 +263,33 @@ export default function Products() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Category</label>
-                <select 
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={categoryId} 
-                  onChange={e => setCategoryId(e.target.value)}
-                  required
-                >
-                  <option value="" disabled>Select category</option>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Category</label>
+              <Select value={categoryId} onValueChange={(val) => setCategoryId(val as string)} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category">
+                    {categoryId ? categories.find(c => c.id === categoryId)?.name : null}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
                   {categories.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <SelectItem key={c.id} value={c.id} label={c.name}>{c.name}</SelectItem>
                   ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Price ($)</label>
-                <Input 
-                  type="number" 
-                  step="0.01"
-                  min="0"
-                  value={price} 
-                  onChange={e => setPrice(e.target.value)} 
-                  required 
-                  placeholder="0.00"
-                />
-              </div>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Price ($)</label>
+              <Input 
+                type="number" 
+                step="0.01"
+                min="0"
+                value={price} 
+                onChange={e => setPrice(e.target.value)} 
+                required 
+                placeholder="0.00"
+              />
             </div>
 
             <div className="space-y-2">
@@ -278,6 +317,15 @@ export default function Products() {
                   {isUploading ? <Loader2 className="animate-spin" size={20} /> : <ImageIcon size={20} />}
                   <span className="text-[10px] mt-1 font-semibold">{isUploading ? 'Uploading...' : 'Add Photo'}</span>
                 </button>
+
+                <button 
+                  type="button"
+                  onClick={() => setLibraryOpen(true)}
+                  className="w-20 h-20 rounded-md border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <Library size={20} />
+                  <span className="text-[10px] mt-1 font-semibold">Library</span>
+                </button>
               </div>
               
               <input 
@@ -297,6 +345,20 @@ export default function Products() {
           </form>
         </DialogContent>
       </Dialog>
+      {cropImageSrc && (
+        <ImageCropperModal
+          isOpen={cropperOpen}
+          onClose={() => setCropperOpen(false)}
+          imageSrc={cropImageSrc}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
+        />
+      )}
+      <MediaLibraryModal 
+        isOpen={libraryOpen} 
+        onClose={() => setLibraryOpen(false)} 
+        onSelect={handleLibrarySelect} 
+      />
     </div>
   );
 }

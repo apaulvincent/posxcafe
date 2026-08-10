@@ -30,3 +30,14 @@ dist-ssr
 test*.mjs
 check.mjs
 seed*.mjs
+
+# AI & Analysis Outputs
+graphify-out/
+
+# Sensitive data
+*.pem
+*.key
+*.cert
+*.p12
+.npmrc
+secrets.json

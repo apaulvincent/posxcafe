@@ -58,11 +58,30 @@ export function useAuth() {
     }
   }
 
+  async function updateProfile(updates: Partial<Profile>) {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .single();
+      
+      if (!error && data) {
+        setProfile(data as Profile);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   return {
     session,
     user,
     profile,
     loading,
+    updateProfile,
     signOut: () => supabase.auth.signOut()
   };
 }

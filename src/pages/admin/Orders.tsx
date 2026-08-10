@@ -113,7 +113,8 @@ export default function Orders() {
                     {order.status === 'ready' && <Badge variant="secondary" className="bg-blue-500/10 text-blue-600">Ready</Badge>}
                     {order.status === 'preparing' && <Badge variant="secondary" className="bg-purple-500/10 text-purple-600">Preparing</Badge>}
                     {order.status === 'pending' && <Badge variant="secondary" className="bg-amber-500/10 text-amber-600">Pending</Badge>}
-                    {!['completed', 'ready', 'preparing', 'pending'].includes(order.status) && <Badge variant="secondary">{order.status}</Badge>}
+                    {order.status === 'cancelled' && <Badge variant="secondary" className="bg-destructive/10 text-destructive">Cancelled</Badge>}
+                    {!['completed', 'ready', 'preparing', 'pending', 'cancelled'].includes(order.status) && <Badge variant="secondary">{order.status}</Badge>}
                   </td>
                   <td className="py-4 px-2 text-right">
                     <div className="flex justify-end gap-2">

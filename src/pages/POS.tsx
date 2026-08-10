@@ -1,12 +1,13 @@
-import { ArrowRight, ChevronDown, List, Loader2, Minus, Plus, Settings2, Eraser, Printer, Percent, DollarSign, FileEdit, Tag } from 'lucide-react';
+import { ArrowRight, ChevronDown, DollarSign, Eraser, FileEdit, List, Loader2, Minus, Percent, Plus, Printer, Settings2, Tag } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { useCategories } from '../hooks/useCategories';
 import type { Product } from '../hooks/useProducts';
 import { useProducts } from '../hooks/useProducts';
@@ -206,9 +207,7 @@ export default function POS() {
             // Dynamic styling based on category
             let colorClasses = "bg-card text-foreground hover:bg-muted";
             if (isActive) {
-              if (cat.slug === 'coffee') colorClasses = "bg-primary text-primary-foreground shadow-md";
-              else if (cat.slug === 'tea') colorClasses = "bg-accent text-accent-foreground shadow-md";
-              else if (cat.slug === 'snack') colorClasses = "bg-amber-500 text-white shadow-md";
+              if (cat.slug === 'tea') colorClasses = "bg-accent text-accent-foreground shadow-md";
               else colorClasses = "bg-primary text-primary-foreground shadow-md";
             }
             
@@ -219,7 +218,7 @@ export default function POS() {
                 className={`flex-1 rounded-3xl p-6 relative overflow-hidden transition-all duration-200 border-2 ${isActive ? 'border-transparent' : 'border-transparent hover:border-primary/20'} ${colorClasses}`}
               >
                 <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-10 
-                  ${isAlert ? 'bg-destructive/10 text-destructive' : 'bg-background/90 text-primary'}
+                  ${isAlert ? (isActive ? 'bg-destructive text-destructive-foreground shadow-sm' : 'bg-destructive/10 text-destructive') : 'bg-background/90 text-primary'}
                 `}>
                   {statusText}
                 </div>
@@ -233,29 +232,38 @@ export default function POS() {
 
         {/* Product Grid */}
         <div className="flex-1 overflow-y-auto pr-2 pb-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-            {filteredProducts.map(product => (
-              <div key={product.id} className="bg-card rounded-2xl p-4 flex flex-col shadow-sm border border-border hover:shadow-md hover:border-primary/30 transition-all group">
-                <div className="h-36 flex items-center justify-center mb-4 p-2 bg-muted/20 rounded-xl">
-                  <img src={product.image_url} alt={product.name} className="max-w-full max-h-full object-contain drop-shadow-xl group-hover:scale-105 transition-transform duration-300" />
-                </div>
-                <div className="flex justify-between items-end mt-auto">
-                  <div className="overflow-hidden">
-                    <h3 className="font-bold text-foreground text-base mb-1 truncate">{product.name}</h3>
-                    <p className="text-sm font-bold text-muted-foreground">${Number(product.price).toFixed(2)}</p>
+          {filteredProducts.length === 0 && !loadingCats && !loadingProds ? (
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground pb-20">
+              <p className="font-extrabold mb-4 text-2xl">No products available</p>
+              <Link to="/admin/products" className="text-primary hover:bg-primary hover:text-primary-foreground transition-colors font-bold text-lg border-2 border-primary bg-primary/5 px-8 py-3 rounded-full shadow-sm hover:shadow-md">
+                Add a product
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+              {filteredProducts.map(product => (
+                <div key={product.id} className="bg-card rounded-2xl p-4 flex flex-col shadow-sm border border-border hover:shadow-md hover:border-primary/30 transition-all group">
+                  <div className="h-36 flex items-center justify-center mb-4 p-2 bg-muted/20 rounded-xl">
+                    <img src={product.image_url} alt={product.name} className="max-w-full max-h-full object-contain drop-shadow-xl group-hover:scale-105 transition-transform duration-300" />
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    className="rounded-full w-10 h-10 border-primary text-primary hover:bg-primary hover:text-primary-foreground shrink-0 ml-2"
-                    onClick={() => addToCart(product)}
-                  >
-                    <Plus size={20} />
-                  </Button>
+                  <div className="flex justify-between items-end mt-auto">
+                    <div className="overflow-hidden">
+                      <h3 className="font-bold text-foreground text-base mb-1 truncate">{product.name}</h3>
+                      <p className="text-sm font-bold text-muted-foreground">${Number(product.price).toFixed(2)}</p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="rounded-full w-10 h-10 border-primary text-primary hover:bg-primary hover:text-primary-foreground shrink-0 ml-2"
+                      onClick={() => addToCart(product)}
+                    >
+                      <Plus size={20} />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -439,7 +447,6 @@ export default function POS() {
               placeholder="e.g. Allergy to nuts, less ice..."
               value={orderNotes} 
               onChange={(e) => setOrderNotes(e.target.value)}
-              className="h-12 rounded-xl font-semibold bg-muted/50 border-transparent focus:bg-background focus:border-primary/50" 
               autoFocus
             />
           </div>
@@ -480,6 +487,19 @@ export default function POS() {
               }}
             >
               Senior Discount (12%)
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-14 justify-start text-lg font-semibold"
+              onClick={() => {
+                setDiscountType('percent');
+                setDiscountAmount(5);
+                setDiscountView('percent');
+                setIsDiscountActive(true);
+                setIsDiscountModalOpen(false);
+              }}
+            >
+              Loyalty Discount (5%)
             </Button>
           </div>
           <DialogFooter>

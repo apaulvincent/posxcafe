@@ -8,14 +8,16 @@ export async function syncDown() {
     const { data: categories, error: catError } = await supabase.from('categories').select('*');
     if (catError) throw catError;
     if (categories) {
-      await db.categories.bulkPut(categories);
+      const syncedCats = categories.map(c => ({ ...c, sync_status: 'synced' as const }));
+      await db.categories.bulkPut(syncedCats);
     }
 
     // Fetch products
     const { data: products, error: prodError } = await supabase.from('products').select('*');
     if (prodError) throw prodError;
     if (products) {
-      await db.products.bulkPut(products);
+      const syncedProds = products.map(p => ({ ...p, sync_status: 'synced' as const }));
+      await db.products.bulkPut(syncedProds);
     }
 
     // Fetch recent orders for dashboard (last 100)
@@ -63,7 +65,43 @@ export async function syncDown() {
 // Push pending orders and notifications from IndexedDB to Supabase
 export async function syncUp() {
   try {
-    // 1. Sync Orders
+    // 1. Sync Categories
+    const pendingCategories = await db.categories.where('sync_status').equals('pending').toArray();
+    if (pendingCategories.length > 0) {
+      for (const cat of pendingCategories) {
+        const { sync_status, ...catData } = cat;
+        // Supply defaults for Supabase NOT NULL constraints if missing
+        const uploadData = {
+          ...catData,
+          count_text: (catData as any).count_text || '0 items',
+          theme_class: (catData as any).theme_class || `active-${catData.slug}`
+        };
+        const { error } = await supabase.from('categories').upsert([uploadData], { onConflict: 'id' });
+        if (error) {
+          console.error('Error uploading category', cat.id, error);
+          continue;
+        }
+        await db.categories.update(cat.id, { sync_status: 'synced' });
+      }
+      console.log(`Successfully synced ${pendingCategories.length} categories up to Supabase`);
+    }
+
+    // 2. Sync Products
+    const pendingProducts = await db.products.where('sync_status').equals('pending').toArray();
+    if (pendingProducts.length > 0) {
+      for (const prod of pendingProducts) {
+        const { sync_status, image_urls, ...prodData } = prod; // drop image_urls as it's not in supabase schema
+        const { error } = await supabase.from('products').upsert([prodData], { onConflict: 'id' });
+        if (error) {
+          console.error('Error uploading product', prod.id, error);
+          continue;
+        }
+        await db.products.update(prod.id, { sync_status: 'synced' });
+      }
+      console.log(`Successfully synced ${pendingProducts.length} products up to Supabase`);
+    }
+
+    // 3. Sync Orders
     const pendingOrders = await db.orders.where('sync_status').equals('pending').toArray();
     
     if (pendingOrders.length > 0) {
@@ -101,7 +139,7 @@ export async function syncUp() {
       console.log(`Successfully synced ${pendingOrders.length} orders up to Supabase`);
     }
 
-    // 2. Sync Notifications
+    // 4. Sync Notifications
     const pendingNotifs = await db.notifications.where('sync_status').equals('pending').toArray();
     if (pendingNotifs.length > 0) {
       for (const notif of pendingNotifs) {

@@ -1,6 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type LocalNotification } from '../lib/db';
-import { supabase } from '../lib/supabase';
 
 export function useNotifications() {
   const notifications = useLiveQuery(

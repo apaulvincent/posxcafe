@@ -200,8 +200,8 @@ export default function POS() {
           ) : categories.map(cat => {
             const catProductsCount = products.filter(p => p.category_id === cat.id).length;
             const isOutOfStock = catProductsCount === 0;
-            const statusText = isOutOfStock ? 'Need to re-stock' : cat.status_text;
-            const isAlert = isOutOfStock || cat.alert;
+            const statusText = isOutOfStock ? 'Need to re-stock' : (cat.status_text?.toLowerCase() === 'need to re-stock' ? 'Available' : (cat.status_text || 'Available'));
+            const isAlert = (isOutOfStock || cat.alert) && statusText !== 'Available';
             const isActive = activeCategory === cat.slug;
             
             // Dynamic styling based on category

@@ -31,7 +31,8 @@ export function GlobalSearch() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const products = useLiveQuery(() => db.products.toArray(), []) || [];
+  const rawProducts = useLiveQuery(() => db.products.toArray(), []) || [];
+  const products = rawProducts.filter(p => !p.is_archived);
   const orders = useLiveQuery(() => db.orders.orderBy('created_at').reverse().limit(50).toArray(), []) || [];
 
   useEffect(() => {

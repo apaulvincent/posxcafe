@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { db, type LocalOrder, type LocalOrderItem } from '../lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
-export type SalesStat = { time: string } & Record<string, number>;
+export type SalesStat = { time: string } & Record<string, string | number>;
 export type TopProductStat = { name: string; quantity: number; revenue: number; };
 export type OrderWithItems = LocalOrder & { items: (LocalOrderItem & { categorySlug: string })[] };
 

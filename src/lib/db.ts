@@ -17,6 +17,7 @@ export type LocalProduct = {
   image_url: string;
   image_urls?: string[];
   sync_status?: 'synced' | 'pending';
+  is_archived?: boolean;
 };
 
 export type LocalOrder = {

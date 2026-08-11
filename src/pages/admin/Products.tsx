@@ -24,6 +24,7 @@ import {
 import { useCategories } from '../../hooks/useCategories';
 import { useProducts, type Product } from '../../hooks/useProducts';
 import { getStoragePathFromUrl, supabase } from '../../lib/supabase';
+import { ConfirmModal } from '../../components/ConfirmModal';
 
 export default function Products() {
   const { products, loading, addProduct, updateProduct, deleteProduct } = useProducts();
@@ -32,6 +33,7 @@ export default function Products() {
   
   // Dialog State
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   
   // Form State
@@ -79,9 +81,18 @@ export default function Products() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      await deleteProduct(id);
+  const handleDelete = (id: string) => {
+    setProductToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (productToDelete) {
+      try {
+        await deleteProduct(productToDelete);
+      } catch (err: any) {
+        window.alert(err.message || "Failed to delete product");
+      }
+      setProductToDelete(null);
     }
   };
 
@@ -354,6 +365,13 @@ export default function Products() {
           aspectRatio={1}
         />
       )}
+      <ConfirmModal
+        isOpen={!!productToDelete}
+        onClose={() => setProductToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Product"
+        description="Are you sure you want to delete this product? This action cannot be undone."
+      />
       <MediaLibraryModal 
         isOpen={libraryOpen} 
         onClose={() => setLibraryOpen(false)} 

@@ -1,13 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type LocalProduct } from '../lib/db';
-import { supabase, getStoragePathFromUrl } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 export type Product = LocalProduct;
 
 export function useProducts() {
   const rawProducts = useLiveQuery(() => db.products.toArray());
   const loading = rawProducts === undefined;
-  const products = rawProducts || [];
+  const products = (rawProducts || []).filter(p => !p.is_archived);
   
   const sortedProducts = [...products].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -34,19 +34,18 @@ export function useProducts() {
   };
 
   const deleteProduct = async (id: string) => {
-    if (navigator.onLine) {
-      // Get the product before deleting to find its image_url
-      const product = await db.products.get(id);
-      if (product?.image_url) {
-        const path = getStoragePathFromUrl(product.image_url);
-        if (path) supabase.storage.from('images').remove([path]).catch(console.error);
-      }
-
-      const { error } = await supabase.from('products').delete().eq('id', id);
-      if (error) console.error("Error deleting product in Supabase", error);
+    if (!navigator.onLine) {
+      throw new Error("You must be online to archive a product.");
     }
+
+    const { error } = await supabase.from('products').update({ is_archived: true }).eq('id', id);
     
-    await db.products.delete(id);
+    if (error) {
+      console.error("Error archiving product in Supabase", error);
+      throw new Error("Cannot archive product: " + error.message);
+    }
+
+    await db.products.update(id, { is_archived: true, sync_status: 'pending' });
   };
 
   return { products: sortedProducts, loading, error: null, addProduct, updateProduct, deleteProduct };

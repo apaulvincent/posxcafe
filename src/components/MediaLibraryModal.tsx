@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { supabase } from '../lib/supabase';
 import { Loader2, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { ConfirmModal } from './ConfirmModal';
 
 interface MediaLibraryModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export function MediaLibraryModal({ isOpen, onClose, onSelect }: MediaLibraryMod
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -94,17 +96,22 @@ export function MediaLibraryModal({ isOpen, onClose, onSelect }: MediaLibraryMod
     }
   };
 
-  const handleDelete = async (e: React.MouseEvent, fileName: string) => {
+  const handleDelete = (e: React.MouseEvent, fileName: string) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this image permanently?')) return;
-    
+    setImageToDelete(fileName);
+  };
+
+  const confirmDelete = async () => {
+    if (!imageToDelete) return;
     try {
-      const { error } = await supabase.storage.from('images').remove([`products/${fileName}`]);
+      const { error } = await supabase.storage.from('images').remove([`products/${imageToDelete}`]);
       if (error) throw error;
-      setFiles(prev => prev.filter(f => f.name !== fileName));
+      setFiles(prev => prev.filter(f => f.name !== imageToDelete));
     } catch (err) {
       console.error('Failed to delete image:', err);
       alert('Failed to delete image');
+    } finally {
+      setImageToDelete(null);
     }
   };
 
@@ -174,6 +181,14 @@ export function MediaLibraryModal({ isOpen, onClose, onSelect }: MediaLibraryMod
           )}
         </div>
       </DialogContent>
+      
+      <ConfirmModal
+        isOpen={!!imageToDelete}
+        onClose={() => setImageToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Image"
+        description="Are you sure you want to delete this image permanently? This action cannot be undone."
+      />
     </Dialog>
   );
 }

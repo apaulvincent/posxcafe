@@ -13,12 +13,14 @@ import {
 } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { useCategories, type Category } from '../../hooks/useCategories';
+import { ConfirmModal } from '../../components/ConfirmModal';
 
 export default function Categories() {
   const { categories, loading, addCategory, updateCategory, deleteCategory } = useCategories();
 
   // Dialog State
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   
   // Form State
@@ -49,9 +51,18 @@ export default function Categories() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this category?')) {
-      await deleteCategory(id);
+  const handleDelete = (id: string) => {
+    setCategoryToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (categoryToDelete) {
+      try {
+        await deleteCategory(categoryToDelete);
+      } catch (err: any) {
+        window.alert(err.message || "Failed to delete category");
+      }
+      setCategoryToDelete(null);
     }
   };
 
@@ -190,6 +201,14 @@ export default function Categories() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmModal
+        isOpen={!!categoryToDelete}
+        onClose={() => setCategoryToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Category"
+        description="Are you sure you want to delete this category? This action cannot be undone."
+      />
     </div>
   );
 }

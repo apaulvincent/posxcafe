@@ -12,7 +12,6 @@ import React from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { GlobalSearch } from './components/GlobalSearch';
 import { Badge } from './components/ui/badge';
-import { Button } from './components/ui/button';
 import { useAuth } from './hooks/useAuth';
 import { useMFA } from './hooks/useMFA';
 import { useOrders } from './hooks/useOrders';
@@ -96,14 +95,14 @@ const Topbar = ({ profile }: { profile: any }) => {
         </Link>
 
         <DropdownMenu onOpenChange={(open) => { if (open) markAsRead(); }}>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger render={
             <button className="flex items-center justify-center w-[52px] h-[52px] bg-card rounded-full shadow-sm hover:ring-2 hover:ring-primary/20 transition-all relative">
               <Bell size={20} />
               {unreadCount > 0 && (
                 <span className="absolute top-3.5 right-3.5 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-card"></span>
               )}
             </button>
-          </DropdownMenuTrigger>
+          } />
           <DropdownMenuContent align="end" className="w-80 p-4 max-h-[80vh] overflow-y-auto">
             <DropdownMenuGroup>
               <div className="flex justify-between items-center mb-2">

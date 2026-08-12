@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Checkbox } from '../../components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -13,10 +12,12 @@ import {
 } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { useCategories, type Category } from '../../hooks/useCategories';
+import { useProducts } from '../../hooks/useProducts';
 import { ConfirmModal } from '../../components/ConfirmModal';
 
 export default function Categories() {
   const { categories, loading, addCategory, updateCategory, deleteCategory } = useCategories();
+  const { products } = useProducts();
 
   // Dialog State
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -26,14 +27,10 @@ export default function Categories() {
   // Form State
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
-  const [statusText, setStatusText] = useState('Available');
-  const [alert, setAlert] = useState(false);
 
   const resetForm = () => {
     setName('');
     setSlug('');
-    setStatusText('Available');
-    setAlert(false);
     setEditingCategory(null);
   };
 
@@ -46,8 +43,6 @@ export default function Categories() {
     setEditingCategory(category);
     setName(category.name);
     setSlug(category.slug);
-    setStatusText(category.status_text);
-    setAlert(category.alert);
     setIsDialogOpen(true);
   };
 
@@ -72,9 +67,7 @@ export default function Categories() {
 
     const categoryData = {
       name,
-      slug,
-      status_text: statusText,
-      alert
+      slug
     };
 
     if (editingCategory) {
@@ -115,15 +108,18 @@ export default function Categories() {
                 <tr>
                   <td colSpan={4} className="text-center py-12 text-muted-foreground">Loading categories...</td>
                 </tr>
-              ) : categories.map(cat => (
+              ) : categories.map(cat => {
+                const isOutOfStock = products.filter(p => p.category_id === cat.id && p.is_available !== false).length === 0;
+                
+                return (
                 <tr key={cat.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors group">
                   <td className="py-4 px-2 font-bold text-sm">{cat.name}</td>
                   <td className="py-4 px-2 text-sm text-muted-foreground font-semibold">{cat.slug}</td>
                   <td className="py-4 px-2">
-                    {cat.alert ? (
-                      <Badge variant="destructive" className="hover:bg-destructive">Needs Attention</Badge>
+                    {isOutOfStock ? (
+                      <Badge variant="secondary" className="bg-destructive/10 text-destructive hover:bg-destructive/20">Needs Attention</Badge>
                     ) : (
-                      <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">{cat.status_text}</Badge>
+                      <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">Available</Badge>
                     )}
                   </td>
                   <td className="py-4 px-2 text-right">
@@ -137,7 +133,7 @@ export default function Categories() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
               {!loading && categories.length === 0 && (
                 <tr>
                   <td colSpan={4} className="text-center py-12 text-muted-foreground font-semibold">No categories found.</td>
@@ -174,26 +170,6 @@ export default function Categories() {
                 placeholder="e.g. coffee"
               />
             </div>
-            
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Status Text</label>
-              <Input 
-                value={statusText} 
-                onChange={e => setStatusText(e.target.value)} 
-                required 
-                placeholder="e.g. Available"
-              />
-            </div>
-            
-            <div className="flex items-center gap-3 mt-4">
-              <Checkbox 
-                id="alert-toggle" 
-                checked={alert} 
-                onChange={e => setAlert((e.target as HTMLInputElement).checked)}
-              />
-              <label htmlFor="alert-toggle" className="text-sm font-semibold cursor-pointer">Needs Attention (Alert State)</label>
-            </div>
-
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
               <Button type="submit">{editingCategory ? 'Save Changes' : 'Add Category'}</Button>

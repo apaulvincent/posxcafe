@@ -157,6 +157,20 @@ export default function POS() {
       }));
       await db.orderItems.bulkAdd(items);
 
+      // Deduct Inventory
+      for (const item of items) {
+        const product = await db.products.get(item.product_id);
+        if (product && product.track_inventory && product.inventory_count !== undefined) {
+          const newCount = Math.max(0, product.inventory_count - item.quantity);
+          const isAvailable = newCount > 0 ? product.is_available : false;
+          await db.products.update(product.id, { 
+            inventory_count: newCount, 
+            is_available: isAvailable,
+            sync_status: 'pending' 
+          });
+        }
+      }
+
       clearCart();
       await generateNewReceiptNumber();
       
@@ -182,7 +196,7 @@ export default function POS() {
 
   const filteredProducts = products.filter(p => {
     const cat = categories.find(c => c.slug === activeCategory);
-    return p.category_id === cat?.id;
+    return p.category_id === cat?.id && p.is_available !== false;
   });
   
   return (
@@ -198,10 +212,10 @@ export default function POS() {
                <Loader2 size={32} className="animate-spin text-primary" />
              </div>
           ) : categories.map(cat => {
-            const catProductsCount = products.filter(p => p.category_id === cat.id).length;
+            const catProductsCount = products.filter(p => p.category_id === cat.id && p.is_available !== false).length;
             const isOutOfStock = catProductsCount === 0;
-            const statusText = isOutOfStock ? 'Need to re-stock' : (cat.status_text?.toLowerCase() === 'need to re-stock' ? 'Available' : (cat.status_text || 'Available'));
-            const isAlert = (isOutOfStock || cat.alert) && statusText !== 'Available';
+            const statusText = isOutOfStock ? 'Need to re-stock' : 'Available';
+            const isAlert = isOutOfStock;
             const isActive = activeCategory === cat.slug;
             
             // Dynamic styling based on category

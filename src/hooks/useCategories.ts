@@ -2,10 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type LocalCategory } from '../lib/db';
 import { supabase } from '../lib/supabase';
 
-export type Category = LocalCategory & {
-  count_text?: string;
-  theme_class?: string;
-};
+export type Category = LocalCategory;
 
 export function useCategories() {
   const rawCategories = useLiveQuery(() => db.categories.toArray());

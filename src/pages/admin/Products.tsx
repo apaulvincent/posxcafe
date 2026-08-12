@@ -1,5 +1,5 @@
 import imageCompression from 'browser-image-compression';
-import { Edit, Image as ImageIcon, Library, Loader2, Plus, Search, Trash2, X } from 'lucide-react';
+import { Edit, Image as ImageIcon, Infinity, Library, Loader2, Plus, Search, Trash2, X } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { ImageCropperModal } from '../../components/ImageCropperModal';
 import { MediaLibraryModal } from '../../components/MediaLibraryModal';
@@ -41,6 +41,9 @@ export default function Products() {
   const [categoryId, setCategoryId] = useState('');
   const [price, setPrice] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [trackInventory, setTrackInventory] = useState(false);
+  const [inventoryCount, setInventoryCount] = useState('0');
   const [isUploading, setIsUploading] = useState(false);
   
   const [cropperOpen, setCropperOpen] = useState(false);
@@ -64,6 +67,9 @@ export default function Products() {
     setCategoryId(categories[0]?.id || '');
     setPrice('');
     setImageUrls([]);
+    setIsAvailable(true);
+    setTrackInventory(false);
+    setInventoryCount('0');
     setEditingProduct(null);
   };
 
@@ -78,6 +84,9 @@ export default function Products() {
     setCategoryId(product.category_id);
     setPrice(product.price.toString());
     setImageUrls(product.image_urls || (product.image_url ? [product.image_url] : []));
+    setIsAvailable(product.is_available !== false);
+    setTrackInventory(product.track_inventory || false);
+    setInventoryCount(product.inventory_count?.toString() || '0');
     setIsDialogOpen(true);
   };
 
@@ -167,7 +176,10 @@ export default function Products() {
       category_id: categoryId,
       price: parseFloat(price),
       image_url: imageUrls[0] || 'https://via.placeholder.com/150',
-      image_urls: imageUrls
+      image_urls: imageUrls,
+      is_available: isAvailable,
+      track_inventory: trackInventory,
+      inventory_count: parseInt(inventoryCount) || 0
     };
 
     if (editingProduct) {
@@ -213,6 +225,7 @@ export default function Products() {
                 <th className="pb-3 px-2">Name</th>
                 <th className="pb-3 px-2">Category</th>
                 <th className="pb-3 px-2">Price</th>
+                <th className="pb-3 px-2">Inventory</th>
                 <th className="pb-3 px-2">Status</th>
                 <th className="pb-3 px-2 text-right">Actions</th>
               </tr>
@@ -232,8 +245,15 @@ export default function Products() {
                     {getCategoryName(product.category_id)}
                   </td>
                   <td className="py-3 px-2 font-extrabold text-sm">${Number(product.price).toFixed(2)}</td>
+                  <td className="py-3 px-2 font-semibold text-sm text-muted-foreground">
+                    {product.track_inventory ? product.inventory_count : <Infinity size={16} className="text-muted-foreground opacity-50" />}
+                  </td>
                   <td className="py-3 px-2">
-                    <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">Active</Badge>
+                    {product.is_available !== false ? (
+                      <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">Available</Badge>
+                    ) : (
+                      <Badge variant="secondary" className="bg-destructive/10 text-destructive hover:bg-destructive/20">Unavailable</Badge>
+                    )}
                   </td>
                   <td className="py-3 px-2 text-right">
                     <div className="flex justify-end gap-2">
@@ -348,6 +368,48 @@ export default function Products() {
                 className="hidden" 
               />
             </div>
+            
+            <div className="flex items-center gap-6 mt-4 p-4 bg-muted/20 rounded-xl border border-border">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={isAvailable}
+                  onChange={e => setIsAvailable(e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                <span className="ml-3 text-sm font-semibold text-foreground">
+                  {isAvailable ? 'Available' : 'Not Available'}
+                </span>
+              </label>
+
+              <div className="w-px h-6 bg-border"></div>
+
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={trackInventory}
+                  onChange={e => setTrackInventory(e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                <span className="ml-3 text-sm font-semibold text-foreground">Track Inventory</span>
+              </label>
+            </div>
+
+            {trackInventory && (
+              <div className="mt-4 animate-in slide-in-from-top-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 block">Quantity in Stock</label>
+                <Input 
+                  type="number" 
+                  placeholder="0" 
+                  value={inventoryCount}
+                  onChange={(e) => setInventoryCount(e.target.value)}
+                  className="h-12 rounded-xl bg-muted/50 border-transparent text-lg font-bold"
+                  min="0"
+                />
+              </div>
+            )}
 
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>

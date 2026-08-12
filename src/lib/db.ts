@@ -4,8 +4,6 @@ export type LocalCategory = {
   id: string;
   name: string;
   slug: string;
-  status_text: string;
-  alert: boolean;
   sync_status?: 'synced' | 'pending';
 };
 
@@ -16,6 +14,9 @@ export type LocalProduct = {
   price: number;
   image_url: string;
   image_urls?: string[];
+  is_available?: boolean;
+  track_inventory?: boolean;
+  inventory_count?: number;
   sync_status?: 'synced' | 'pending';
   is_archived?: boolean;
 };

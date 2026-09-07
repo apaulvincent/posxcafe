@@ -7,7 +7,9 @@ import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import type { LocalOrder, LocalOrderItem } from '../lib/db';
 
+import { useCurrency } from '../contexts/CurrencyContext';
 export default function TrackOrder() {
+  const { currencySymbol } = useCurrency();
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<LocalOrder | null>(null);
   const [items, setItems] = useState<LocalOrderItem[]>([]);
@@ -172,7 +174,7 @@ export default function TrackOrder() {
                         <span className="text-xs font-semibold text-muted-foreground">Qty: {item.quantity}</span>
                       </div>
                     </div>
-                    <span className="font-bold text-sm">${(item.unit_price * item.quantity).toFixed(2)}</span>
+                    <span className="font-bold text-sm">{currencySymbol}{(item.unit_price * item.quantity).toFixed(2)}</span>
                   </div>
                 )) : (
                   <div className="text-sm font-semibold text-muted-foreground">Local fallback items not displayed.</div>
@@ -182,15 +184,15 @@ export default function TrackOrder() {
               <div className="border-t border-dashed border-border pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="font-semibold text-muted-foreground">Subtotal</span>
-                  <span className="font-bold">${order.subtotal.toFixed(2)}</span>
+                  <span className="font-bold">{currencySymbol}{order.subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="font-semibold text-muted-foreground">Tax</span>
-                  <span className="font-bold">${order.tax.toFixed(2)}</span>
+                  <span className="font-bold">{currencySymbol}{order.tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-end mt-2 pt-2 border-t border-border">
                   <span className="font-extrabold">Total</span>
-                  <span className="font-extrabold text-xl text-primary">${order.total.toFixed(2)}</span>
+                  <span className="font-extrabold text-xl text-primary">{currencySymbol}{order.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>

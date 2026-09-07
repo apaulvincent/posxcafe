@@ -41,3 +41,5 @@ graphify-out/
 *.p12
 .npmrc
 secrets.json
+
+.vercel

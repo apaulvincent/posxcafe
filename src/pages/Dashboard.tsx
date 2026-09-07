@@ -26,6 +26,7 @@ import {
 import { db } from '../lib/db';
 import { syncAll } from '../lib/sync';
 
+import { useCurrency } from '../contexts/CurrencyContext';
 const CATEGORY_COLORS = [
   'hsl(var(--primary))',
   'hsl(var(--accent))',
@@ -38,6 +39,7 @@ const CATEGORY_COLORS = [
 ];
 
 export default function Dashboard() {
+  const { currencySymbol } = useCurrency();
   const [chartPeriod, setChartPeriod] = useState<'day' | 'month' | 'year' | 'all' | 'custom'>('day');
   
   const { 
@@ -125,20 +127,20 @@ export default function Dashboard() {
                 <div className="flex flex-col gap-4 py-4">
                   <div className="flex justify-between items-center pb-4 border-b border-border/50">
                     <span className="text-sm font-bold text-muted-foreground">Gross Sales</span>
-                    <span className="font-extrabold text-lg">${revenueDetails.grossSales.toFixed(2)}</span>
+                    <span className="font-extrabold text-lg">{currencySymbol}{revenueDetails.grossSales.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center pb-4 border-b border-border/50">
                     <span className="text-sm font-bold text-muted-foreground">Discounts Applied</span>
-                    <span className="font-extrabold text-lg text-destructive">-${revenueDetails.discounts.toFixed(2)}</span>
+                    <span className="font-extrabold text-lg text-destructive">-{currencySymbol}{revenueDetails.discounts.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center pb-4 border-b border-border/50">
                     <span className="text-sm font-bold text-muted-foreground">Net Sales</span>
-                    <span className="font-extrabold text-lg text-primary">${revenueDetails.netSales.toFixed(2)}</span>
+                    <span className="font-extrabold text-lg text-primary">{currencySymbol}{revenueDetails.netSales.toFixed(2)}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-2">
                     <div className="flex flex-col p-4 bg-muted/30 rounded-2xl">
                       <span className="text-xs font-bold text-muted-foreground mb-1">Avg Transaction</span>
-                      <span className="font-extrabold text-lg">${revenueDetails.atv.toFixed(2)}</span>
+                      <span className="font-extrabold text-lg">{currencySymbol}{revenueDetails.atv.toFixed(2)}</span>
                     </div>
                     <div className="flex flex-col p-4 bg-muted/30 rounded-2xl">
                       <span className="text-xs font-bold text-muted-foreground mb-1">Total Transactions</span>
@@ -148,7 +150,7 @@ export default function Dashboard() {
                   {revenueDetails.refunds > 0 && (
                     <div className="flex justify-between items-center p-4 bg-destructive/10 rounded-2xl mt-2">
                        <span className="text-sm font-bold text-destructive">Lost to Cancellations</span>
-                       <span className="font-extrabold text-lg text-destructive">${revenueDetails.refunds.toFixed(2)}</span>
+                       <span className="font-extrabold text-lg text-destructive">{currencySymbol}{revenueDetails.refunds.toFixed(2)}</span>
                     </div>
                   )}
                 </div>
@@ -156,7 +158,7 @@ export default function Dashboard() {
             </Dialog>
           </div>
           <div className="flex items-end gap-3 mt-4">
-            <span className="text-4xl font-extrabold">${totalRevenue.toFixed(2)}</span>
+            <span className="text-4xl font-extrabold">{currencySymbol}{totalRevenue.toFixed(2)}</span>
           </div>
         </Card>
 
@@ -191,7 +193,7 @@ export default function Dashboard() {
              <div className="text-4xl font-extrabold flex items-baseline gap-2">
                 {todaySalesCount} 
                 <span className={`text-sm font-bold flex items-center ${revenueDiff >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                  {revenueDiff >= 0 ? '▲' : '▼'} ${Math.abs(revenueDiff).toFixed(2)}
+                  {revenueDiff >= 0 ? '▲' : '▼'} {currencySymbol}{Math.abs(revenueDiff).toFixed(2)}
                 </span>
              </div>
            </div>
@@ -205,7 +207,7 @@ export default function Dashboard() {
             <div>
               <h3 className="font-bold flex items-center gap-2 text-lg"><TrendingUp size={24} className="text-primary" /> Sales Statistic</h3>
               <div className={`text-sm font-bold mt-2 ${revenueDiff >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                {revenueDiff >= 0 ? '▲' : '▼'} ${Math.abs(revenueDiff).toFixed(2)}
+                {revenueDiff >= 0 ? '▲' : '▼'} {currencySymbol}{Math.abs(revenueDiff).toFixed(2)}
               </div>
             </div>
             <div className="flex items-center gap-6">
@@ -471,7 +473,7 @@ export default function Dashboard() {
                     <td className="py-3 px-2 text-sm text-muted-foreground font-semibold">
                       {tx.items.reduce((acc, i) => acc + i.quantity, 0)} items
                     </td>
-                    <td className="py-3 px-2 text-sm font-extrabold text-right">${Number(tx.total).toFixed(2)}</td>
+                    <td className="py-3 px-2 text-sm font-extrabold text-right">{currencySymbol}{Number(tx.total).toFixed(2)}</td>
                     <td className="py-3 px-2 text-center">
                       <span className={`text-xs font-bold px-2 py-1 rounded-full ${
                         tx.status === 'completed' ? 'bg-primary/10 text-primary' : 

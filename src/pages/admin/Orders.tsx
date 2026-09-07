@@ -7,7 +7,9 @@ import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { db } from '../../lib/db';
 
+import { useCurrency } from '../../contexts/CurrencyContext';
 export default function Orders() {
+  const { currencySymbol } = useCurrency();
   const { orders, loading, refetch } = useOrders();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -107,7 +109,7 @@ export default function Orders() {
                   <td className="py-4 px-2 text-sm text-muted-foreground font-mono">{order.receipt_number || order.id.split('-')[0]}</td>
                   <td className="py-4 px-2 font-bold text-sm">{order.customer_name}</td>
                   <td className="py-4 px-2 text-sm text-muted-foreground font-semibold">{order.order_type}</td>
-                  <td className="py-4 px-2 font-extrabold text-sm">${Number(order.total).toFixed(2)}</td>
+                  <td className="py-4 px-2 font-extrabold text-sm">{currencySymbol}{Number(order.total).toFixed(2)}</td>
                   <td className="py-4 px-2">
                     {order.status === 'completed' && <Badge variant="secondary" className="bg-primary/10 text-primary">Completed</Badge>}
                     {order.status === 'ready' && <Badge variant="secondary" className="bg-blue-500/10 text-blue-600">Ready</Badge>}

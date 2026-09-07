@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, ClipboardList, Coffee, Layers, LayoutDashboard, Loader2, Package } from 'lucide-react';
+import { Bell, Calculator, ClipboardList, Coffee, Layers, LayoutDashboard, Loader2, Package, Tag, Grid } from 'lucide-react';
 import React from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { GlobalSearch } from './components/GlobalSearch';
@@ -19,6 +19,10 @@ import { syncAll } from './lib/sync';
 import Categories from './pages/admin/Categories';
 import Orders from './pages/admin/Orders';
 import Products from './pages/admin/Products';
+import CurrencySelector from './pages/admin/CurrencySelector';
+import Discounts from './pages/admin/Discounts';
+import Tables from './pages/admin/Tables';
+import { CurrencyProvider } from './contexts/CurrencyContext';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import POS from './pages/POS';
@@ -200,8 +204,17 @@ function AppLayout() {
                <Link to="/admin/products" className={`w-14 h-14 rounded-full flex items-center justify-center shadow-sm transition-all ${location.pathname === '/admin/products' ? 'bg-primary text-primary-foreground' : 'bg-card text-primary hover:bg-primary/10'}`}>
                  <Package size={24} />
                </Link>
+               <Link to="/admin/discounts" className={`w-14 h-14 rounded-full flex items-center justify-center shadow-sm transition-all ${location.pathname === '/admin/discounts' ? 'bg-primary text-primary-foreground' : 'bg-card text-primary hover:bg-primary/10'}`}>
+                 <Tag size={24} />
+               </Link>
+               <Link to="/admin/tables" className={`w-14 h-14 rounded-full flex items-center justify-center shadow-sm transition-all ${location.pathname === '/admin/tables' ? 'bg-primary text-primary-foreground' : 'bg-card text-primary hover:bg-primary/10'}`}>
+                 <Grid size={24} />
+               </Link>
                <Link to="/admin/categories" className={`w-14 h-14 rounded-full flex items-center justify-center shadow-sm transition-all ${location.pathname === '/admin/categories' ? 'bg-primary text-primary-foreground' : 'bg-card text-primary hover:bg-primary/10'}`}>
                  <Layers size={24} />
+               </Link>
+               <Link to="/admin/currency-selector" className={`w-14 h-14 rounded-full flex items-center justify-center shadow-sm transition-all ${location.pathname === '/admin/currency-selector' ? 'bg-primary text-primary-foreground' : 'bg-card text-primary hover:bg-primary/10'}`}>
+                 <Calculator size={24} />
                </Link>
              </>
            ) : null}
@@ -213,8 +226,11 @@ function AppLayout() {
             <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />
             <Route path="/profile" element={<AuthGuard><Profile /></AuthGuard>} />
             <Route path="/admin/products" element={<AuthGuard><Products /></AuthGuard>} />
+            <Route path="/admin/discounts" element={<AuthGuard><Discounts /></AuthGuard>} />
+            <Route path="/admin/tables" element={<AuthGuard><Tables /></AuthGuard>} />
             <Route path="/admin/categories" element={<AuthGuard><Categories /></AuthGuard>} />
             <Route path="/admin/orders" element={<AuthGuard><Orders /></AuthGuard>} />
+            <Route path="/admin/currency-selector" element={<AuthGuard><CurrencySelector /></AuthGuard>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
@@ -225,9 +241,11 @@ function AppLayout() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppLayout />
-    </BrowserRouter>
+    <CurrencyProvider>
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>
+    </CurrencyProvider>
   )
 }
 

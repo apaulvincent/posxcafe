@@ -1,5 +1,7 @@
 import imageCompression from 'browser-image-compression';
-import { Edit, Image as ImageIcon, Infinity, Library, Loader2, Plus, Search, Trash2, X } from 'lucide-react';
+import Papa from 'papaparse';
+import { db } from '../../lib/db';
+import { Edit, Image as ImageIcon, Infinity, Library, Loader2, Plus, Search, Trash2, X, Upload } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { ImageCropperModal } from '../../components/ImageCropperModal';
 import { MediaLibraryModal } from '../../components/MediaLibraryModal';
@@ -26,7 +28,9 @@ import { useProducts, type Product } from '../../hooks/useProducts';
 import { getStoragePathFromUrl, supabase } from '../../lib/supabase';
 import { ConfirmModal } from '../../components/ConfirmModal';
 
+import { useCurrency } from '../../contexts/CurrencyContext';
 export default function Products() {
+  const { currencySymbol } = useCurrency();
   const { products, loading, addProduct, updateProduct, deleteProduct } = useProducts();
   const { categories } = useCategories();
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,6 +57,8 @@ export default function Products() {
   const [libraryOpen, setLibraryOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRefCsv = useRef<HTMLInputElement>(null);
+  const [isImporting, setIsImporting] = useState(false);
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -167,6 +173,71 @@ export default function Products() {
     setImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
+  
+  const handleCsvImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsImporting(true);
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        try {
+          const rows = results.data as any[];
+          const newProducts = [];
+          
+          for (const row of rows) {
+            let catId = categories[0]?.id || '';
+            const catName = row['Category']?.trim();
+            if (catName) {
+              const existingCat = await db.categories.where('name').equalsIgnoreCase(catName).first();
+              if (existingCat) {
+                catId = existingCat.id;
+              } else {
+                catId = crypto.randomUUID();
+                await db.categories.add({
+                  id: catId,
+                  name: catName,
+                  slug: catName.toLowerCase().replace(/\s+/g, '-'),
+                  sync_status: 'pending' as const
+                });
+              }
+            }
+
+            const price = parseFloat(row['Price'] || row['price']);
+            if (row['Name'] && !isNaN(price)) {
+              newProducts.push({
+                id: crypto.randomUUID(),
+                category_id: catId,
+                name: row['Name'],
+                price: price,
+                image_url: 'https://via.placeholder.com/150',
+                image_urls: ['https://via.placeholder.com/150'],
+                is_available: true,
+                track_inventory: false,
+                inventory_count: 0,
+                sync_status: 'pending' as const
+              });
+            }
+          }
+
+          if (newProducts.length > 0) {
+            await db.products.bulkAdd(newProducts);
+            alert(`Successfully imported ${newProducts.length} products!`);
+            // Trigger a dummy state change to refresh if necessary, or let dexie-react-hooks handle it
+          }
+        } catch (error) {
+          console.error('Failed to import CSV', error);
+          alert('Failed to import CSV');
+        } finally {
+          setIsImporting(false);
+          if (fileInputRefCsv.current) fileInputRefCsv.current.value = '';
+        }
+      }
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !categoryId || !price) return;
@@ -199,9 +270,15 @@ export default function Products() {
           <h1 className="text-3xl font-extrabold tracking-tight">Products</h1>
           <p className="text-muted-foreground mt-1">Manage your menu items and stock</p>
         </div>
-        <Button onClick={openAddDialog} className="rounded-full h-12 px-6 font-bold shadow-md shadow-primary/20 gap-2">
-          <Plus size={20} /> Add Product
-        </Button>
+        <div className="flex gap-2">
+          <input type="file" accept=".csv" ref={fileInputRefCsv} className="hidden" onChange={handleCsvImport} />
+          <Button variant="secondary" onClick={() => fileInputRefCsv.current?.click()} disabled={isImporting} className="rounded-full h-12 px-6 font-bold shadow-sm border border-border/50 gap-2 hover:bg-muted/80">
+            {isImporting ? <Loader2 className="animate-spin" size={20} /> : <Upload size={20} />} Import CSV
+          </Button>
+          <Button onClick={openAddDialog} className="rounded-full h-12 px-6 font-bold shadow-md shadow-primary/20 gap-2">
+            <Plus size={20} /> Add Product
+          </Button>
+        </div>
       </div>
 
       <Card className="rounded-3xl border-none shadow-sm flex flex-col p-6 min-h-[500px]">
@@ -244,7 +321,7 @@ export default function Products() {
                   <td className="py-3 px-2 text-sm text-muted-foreground font-semibold">
                     {getCategoryName(product.category_id)}
                   </td>
-                  <td className="py-3 px-2 font-extrabold text-sm">${Number(product.price).toFixed(2)}</td>
+                  <td className="py-3 px-2 font-extrabold text-sm">{currencySymbol}{Number(product.price).toFixed(2)}</td>
                   <td className="py-3 px-2 font-semibold text-sm text-muted-foreground">
                     {product.track_inventory ? product.inventory_count : <Infinity size={16} className="text-muted-foreground opacity-50" />}
                   </td>

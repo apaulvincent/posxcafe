@@ -36,6 +36,8 @@ function generateReceiptPayload(order: LocalOrder, items: any[]): Uint8Array {
   }
   receipt += '-'.repeat(32) + NEWLINE;
   
+  const currencySymbol = localStorage.getItem('currencySymbol') || '₱';
+  
   // Items
   items.forEach(item => {
     const itemName = item.products?.name || 'Item';
@@ -45,25 +47,25 @@ function generateReceiptPayload(order: LocalOrder, items: any[]): Uint8Array {
     // Format: ItemName xQty  $Price (right aligned)
     // Simplified for 32 character width
     const line1 = `${itemName} x${qty}`;
-    const padding = Math.max(0, 32 - line1.length - price.length - 1);
-    receipt += line1 + ' '.repeat(padding) + '$' + price + NEWLINE;
+    const padding = Math.max(0, 32 - line1.length - price.length - currencySymbol.length);
+    receipt += line1 + ' '.repeat(padding) + currencySymbol + price + NEWLINE;
   });
   
   receipt += '-'.repeat(32) + NEWLINE;
   
   // Totals
   const subtotalLine = `Subtotal:`;
-  const subPad = Math.max(0, 32 - subtotalLine.length - order.subtotal.toFixed(2).length - 1);
-  receipt += subtotalLine + ' '.repeat(subPad) + '$' + order.subtotal.toFixed(2) + NEWLINE;
+  const subPad = Math.max(0, 32 - subtotalLine.length - order.subtotal.toFixed(2).length - currencySymbol.length);
+  receipt += subtotalLine + ' '.repeat(subPad) + currencySymbol + order.subtotal.toFixed(2) + NEWLINE;
   
   const taxLine = `Tax (10%):`;
-  const taxPad = Math.max(0, 32 - taxLine.length - order.tax.toFixed(2).length - 1);
-  receipt += taxLine + ' '.repeat(taxPad) + '$' + order.tax.toFixed(2) + NEWLINE;
+  const taxPad = Math.max(0, 32 - taxLine.length - order.tax.toFixed(2).length - currencySymbol.length);
+  receipt += taxLine + ' '.repeat(taxPad) + currencySymbol + order.tax.toFixed(2) + NEWLINE;
   
   receipt += BOLD_ON;
   const totalLine = `TOTAL:`;
-  const totalPad = Math.max(0, 32 - totalLine.length - order.total.toFixed(2).length - 1);
-  receipt += DOUBLE_HEIGHT_WIDTH + totalLine + ' '.repeat(totalPad) + '$' + order.total.toFixed(2) + NEWLINE;
+  const totalPad = Math.max(0, 32 - totalLine.length - order.total.toFixed(2).length - currencySymbol.length);
+  receipt += DOUBLE_HEIGHT_WIDTH + totalLine + ' '.repeat(totalPad) + currencySymbol + order.total.toFixed(2) + NEWLINE;
   receipt += NORMAL_TEXT + BOLD_OFF;
   
   receipt += '-'.repeat(32) + NEWLINE;

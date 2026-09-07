@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { Input } from './ui/input';
 
+import { useCurrency } from '../contexts/CurrencyContext';
 type SearchResult = {
   id: string;
   title: string;
@@ -23,6 +24,7 @@ const NAVIGATION_ITEMS: SearchResult[] = [
 ];
 
 export function GlobalSearch() {
+  const { currencySymbol } = useCurrency();
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -69,7 +71,7 @@ export function GlobalSearch() {
       .map(p => ({
         id: `prod-${p.id}`,
         title: p.name,
-        subtitle: `$${Number(p.price).toFixed(2)}`,
+        subtitle: `${currencySymbol}${Number(p.price).toFixed(2)}`,
         type: 'product',
         url: '/admin/products',
         icon: <Coffee size={18} />

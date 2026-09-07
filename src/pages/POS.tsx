@@ -9,13 +9,21 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '../components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useCategories } from '../hooks/useCategories';
+import { useDiscounts } from '../hooks/useDiscounts';
+import { useTables } from '../hooks/useTables';
 import type { Product } from '../hooks/useProducts';
 import { useProducts } from '../hooks/useProducts';
 import { db } from '../lib/db';
 
+import { useCurrency } from '../contexts/CurrencyContext';
 export default function POS() {
+  const { currencySymbol } = useCurrency();
   const [activeCategory, setActiveCategory] = useState<string>('coffee');
   const { categories, loading: loadingCats } = useCategories();
+  const { discounts } = useDiscounts();
+  const { tables } = useTables();
+  const activeTables = tables.filter(t => t.is_active).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+  const activeDiscounts = discounts.filter(d => d.is_active);
   const { products, loading: loadingProds } = useProducts();
   
   type CartItem = Product & { qty: number };
@@ -263,7 +271,7 @@ export default function POS() {
                   <div className="flex justify-between items-end mt-auto">
                     <div className="overflow-hidden">
                       <h3 className="font-bold text-foreground text-base mb-1 truncate">{product.name}</h3>
-                      <p className="text-sm font-bold text-muted-foreground">${Number(product.price).toFixed(2)}</p>
+                      <p className="text-sm font-bold text-muted-foreground">{currencySymbol}{Number(product.price).toFixed(2)}</p>
                     </div>
                     <Button 
                       variant="outline" 
@@ -341,11 +349,9 @@ export default function POS() {
                     onChange={(e) => setTableNumber(e.target.value)}
                     className="h-11 w-full appearance-none rounded-xl font-semibold bg-muted/50 border-transparent px-3 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/20"
                   >
-                    {[1,2,3,4].map(num => (
-                      <option key={num} value={`Table ${num}`}>Table {num}</option>
+                    {activeTables.map(t => (
+                      <option key={t.id} value={t.name}>{t.name} {t.capacity ? `(${t.capacity} pax)` : ''}</option>
                     ))}
-                    <option value="Bar">Bar</option>
-                    <option value="Patio 1">Patio</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 </div>
@@ -372,9 +378,9 @@ export default function POS() {
                     <div className="flex justify-between items-start">
                       <div className="truncate pr-2">
                         <h4 className="font-bold text-sm truncate">{item.name}</h4>
-                        <p className="text-xs font-semibold text-muted-foreground">${Number(item.price).toFixed(2)} x {item.qty}</p>
+                        <p className="text-xs font-semibold text-muted-foreground">{currencySymbol}{Number(item.price).toFixed(2)} x {item.qty}</p>
                       </div>
-                      <span className="font-bold text-sm shrink-0">${(Number(item.price) * item.qty).toFixed(2)}</span>
+                      <span className="font-bold text-sm shrink-0">{currencySymbol}{(Number(item.price) * item.qty).toFixed(2)}</span>
                     </div>
                     
                     <div className="flex justify-between items-center mt-2">
@@ -402,7 +408,7 @@ export default function POS() {
             <div className="space-y-2 mb-6">
               <div className="flex justify-between text-sm">
                 <span className="font-semibold text-muted-foreground">Subtotal</span>
-                <span className="font-bold">${subtotal.toFixed(2)}</span>
+                <span className="font-bold">{currencySymbol}{subtotal.toFixed(2)}</span>
               </div>
               {isDiscountActive && discountValue > 0 && (
                 <div className="flex justify-between items-center text-sm text-destructive">
@@ -415,7 +421,7 @@ export default function POS() {
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="font-bold">
-                      {discountView === 'percent' ? `-${discountType === 'percent' ? discountAmount : Math.round((discountAmount / subtotal) * 100)}%` : `-$${discountValue.toFixed(2)}`}
+                      {discountView === 'percent' ? `-${discountType === 'percent' ? discountAmount : Math.round((discountAmount / subtotal) * 100)}%` : `-${currencySymbol}${discountValue.toFixed(2)}`}
                     </span>
                     <Button variant="ghost" size="icon" className="w-6 h-6 text-destructive hover:bg-destructive/10" onClick={() => { setIsDiscountActive(false); setDiscountAmount(0); }}>
                       <Eraser size={14} />
@@ -425,11 +431,11 @@ export default function POS() {
               )}
               <div className="flex justify-between text-sm">
                 <span className="font-semibold text-muted-foreground">Tax (10%)</span>
-                <span className="font-bold">${tax.toFixed(2)}</span>
+                <span className="font-bold">{currencySymbol}{tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-end mt-2 pt-2 border-t border-border">
                 <span className="font-extrabold text-lg">Total</span>
-                <span className="font-extrabold text-2xl text-primary">${total.toFixed(2)}</span>
+                <span className="font-extrabold text-2xl text-primary">{currencySymbol}{total.toFixed(2)}</span>
               </div>
             </div>
 
@@ -476,45 +482,26 @@ export default function POS() {
             <DialogTitle>Select Discount</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-4">
-            <Button 
-              variant="outline" 
-              className="h-14 justify-start text-lg font-semibold"
-              onClick={() => {
-                setDiscountType('percent');
-                setDiscountAmount(10);
-                setDiscountView('percent');
-                setIsDiscountActive(true);
-                setIsDiscountModalOpen(false);
-              }}
-            >
-              Disabled Discount (10%)
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-14 justify-start text-lg font-semibold"
-              onClick={() => {
-                setDiscountType('percent');
-                setDiscountAmount(12);
-                setDiscountView('percent');
-                setIsDiscountActive(true);
-                setIsDiscountModalOpen(false);
-              }}
-            >
-              Senior Discount (12%)
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-14 justify-start text-lg font-semibold"
-              onClick={() => {
-                setDiscountType('percent');
-                setDiscountAmount(5);
-                setDiscountView('percent');
-                setIsDiscountActive(true);
-                setIsDiscountModalOpen(false);
-              }}
-            >
-              Loyalty Discount (5%)
-            </Button>
+            {activeDiscounts.length === 0 ? (
+              <p className="text-center text-muted-foreground font-semibold py-4">No active discounts available.</p>
+            ) : (
+              activeDiscounts.map(d => (
+                <Button 
+                  key={d.id}
+                  variant="outline" 
+                  className="h-14 justify-start text-lg font-semibold"
+                  onClick={() => {
+                    setDiscountType(d.type);
+                    setDiscountAmount(d.value);
+                    setDiscountView(d.type);
+                    setIsDiscountActive(true);
+                    setIsDiscountModalOpen(false);
+                  }}
+                >
+                  {d.name} ({d.type === 'percent' ? d.value + '%' : currencySymbol + d.value.toFixed(2)})
+                </Button>
+              ))
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDiscountModalOpen(false)} className="rounded-full font-bold px-8">Cancel</Button>

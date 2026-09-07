@@ -57,12 +57,31 @@ export type LocalNotification = {
   sync_status: 'synced' | 'pending';
 };
 
+export type LocalDiscount = {
+  id: string;
+  name: string;
+  type: 'percent' | 'amount';
+  value: number;
+  is_active: boolean;
+  sync_status?: 'synced' | 'pending';
+};
+
+export type LocalTable = {
+  id: string;
+  name: string;
+  capacity?: number;
+  is_active: boolean;
+  sync_status?: 'synced' | 'pending';
+};
+
 class PosDatabase extends Dexie {
   categories!: EntityTable<LocalCategory, 'id'>;
   products!: EntityTable<LocalProduct, 'id'>;
   orders!: EntityTable<LocalOrder, 'id'>;
   orderItems!: EntityTable<LocalOrderItem, 'id'>;
   notifications!: EntityTable<LocalNotification, 'id'>;
+  discounts!: EntityTable<LocalDiscount, 'id'>;
+  diningTables!: EntityTable<LocalTable, 'id'>;
 
   constructor() {
     super('PosDatabase');
@@ -76,6 +95,12 @@ class PosDatabase extends Dexie {
     this.version(3).stores({
       categories: 'id, slug, sync_status', 
       products: 'id, category_id, sync_status'
+    });
+    this.version(4).stores({
+      discounts: 'id, is_active, sync_status'
+    });
+    this.version(5).stores({
+      diningTables: 'id, is_active, sync_status'
     });
   }
 }

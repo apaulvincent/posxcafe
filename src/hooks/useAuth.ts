@@ -6,7 +6,7 @@ export type Profile = {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'cashier';
+  role: 'admin' | 'manager' | 'cashier';
   avatar_url: string;
 };
 

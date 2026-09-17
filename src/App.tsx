@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Calculator, ClipboardList, Coffee, Layers, LayoutDashboard, Loader2, Package, Tag, Grid, Users as UsersIcon, Settings as SettingsIcon } from 'lucide-react';
+import { Bell, ClipboardList, Coffee, Layers, LayoutDashboard, Loader2, Package, Tag, Grid, Users as UsersIcon, Settings as SettingsIcon } from 'lucide-react';
 import React from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { GlobalSearch } from './components/GlobalSearch';
@@ -20,7 +20,6 @@ import { syncAll } from './lib/sync';
 import Categories from './pages/admin/Categories';
 import Orders from './pages/admin/Orders';
 import Products from './pages/admin/Products';
-import CurrencySelector from './pages/admin/CurrencySelector';
 import Discounts from './pages/admin/Discounts';
 import Tables from './pages/admin/Tables';
 import Users from './pages/admin/Users';
@@ -236,9 +235,6 @@ function AppLayout() {
                <Link to="/admin/categories" className={`w-14 h-14 rounded-full flex items-center justify-center shadow-sm transition-all ${location.pathname === '/admin/categories' ? 'bg-primary text-primary-foreground' : 'bg-card text-primary hover:bg-primary/10'}`}>
                  <Layers size={24} />
                </Link>
-               <Link to="/admin/currency-selector" className={`w-14 h-14 rounded-full flex items-center justify-center shadow-sm transition-all ${location.pathname === '/admin/currency-selector' ? 'bg-primary text-primary-foreground' : 'bg-card text-primary hover:bg-primary/10'}`}>
-                 <Calculator size={24} />
-               </Link>
                <Link to="/admin/users" className={`w-14 h-14 rounded-full flex items-center justify-center shadow-sm transition-all ${location.pathname === '/admin/users' ? 'bg-primary text-primary-foreground' : 'bg-card text-primary hover:bg-primary/10'}`}>
                  <UsersIcon size={24} />
                </Link>
@@ -259,7 +255,6 @@ function AppLayout() {
             <Route path="/admin/tables" element={<AuthGuard><Tables /></AuthGuard>} />
             <Route path="/admin/categories" element={<AuthGuard><Categories /></AuthGuard>} />
             <Route path="/admin/orders" element={<AuthGuard><Orders /></AuthGuard>} />
-            <Route path="/admin/currency-selector" element={<AuthGuard><CurrencySelector /></AuthGuard>} />
             <Route path="/admin/users" element={<AuthGuard><Users /></AuthGuard>} />
             <Route path="/admin/settings" element={<AuthGuard><Settings /></AuthGuard>} />
             <Route path="*" element={<Navigate to="/" replace />} />

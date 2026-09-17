@@ -5,7 +5,8 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { useAuth } from '../../hooks/useAuth';
-import { Loader2, KeyRound, UserPlus, Users as UsersIcon } from 'lucide-react';
+import { useSettings } from '../../hooks/useSettings';
+import { Loader2, UserPlus, Users as UsersIcon, ShieldAlert } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
 const tempClient = createClient(
@@ -16,6 +17,7 @@ const tempClient = createClient(
 
 export default function Users() {
   const { profile } = useAuth();
+  const { settings, saveSettings } = useSettings();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,10 +31,7 @@ export default function Users() {
   const [creating, setCreating] = useState(false);
   const [createMsg, setCreateMsg] = useState({ text: '', type: '' });
 
-  // Change Password State
-  const [newPass, setNewPass] = useState('');
-  const [changingPass, setChangingPass] = useState(false);
-  const [passMsg, setPassMsg] = useState({ text: '', type: '' });
+
 
   useEffect(() => {
     fetchUsers();
@@ -152,26 +151,7 @@ export default function Users() {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPass) return;
-    setChangingPass(true);
-    setPassMsg({ text: '', type: '' });
 
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPass
-      });
-
-      if (error) throw error;
-      setPassMsg({ text: 'Password updated successfully!', type: 'success' });
-      setNewPass('');
-    } catch (err: any) {
-      setPassMsg({ text: err.message || 'Failed to update password', type: 'error' });
-    } finally {
-      setChangingPass(false);
-    }
-  };
 
   if (profile?.role !== 'admin' && profile?.role !== 'manager') {
     return <div className="p-8">Access Denied</div>;
@@ -255,31 +235,30 @@ export default function Users() {
         </Card>
 
         <div className="flex flex-col gap-8">
-          {/* Change My Password */}
           <Card className="border-none shadow-sm bg-card rounded-3xl overflow-hidden">
             <CardHeader className="bg-muted/30 border-b border-border/50 pb-6">
               <CardTitle className="flex items-center gap-2 text-xl">
-                <KeyRound className="text-primary" size={24} /> Change My Password
+                <ShieldAlert className="text-primary" size={24} /> Security Settings
               </CardTitle>
-              <CardDescription>Update your own account password</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
-              <form onSubmit={handleChangePassword} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium leading-none">New Password</label>
-                  <Input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} placeholder="••••••••" required minLength={6} />
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-foreground">Cashier 2FA</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Require Cashiers to use Two-Factor Authentication</p>
                 </div>
-                
-                {passMsg.text && (
-                  <div className={`p-3 rounded-lg text-sm font-semibold ${passMsg.type === 'error' ? 'bg-destructive/10 text-destructive' : 'bg-green-500/10 text-green-600'}`}>
-                    {passMsg.text}
-                  </div>
-                )}
-
-                <Button type="submit" disabled={changingPass} variant="secondary" className="w-full h-12 rounded-xl font-bold">
-                  {changingPass ? <Loader2 className="animate-spin" /> : 'Update Password'}
-                </Button>
-              </form>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={settings.requireCashierMFA}
+                  onClick={() => saveSettings({ ...settings, requireCashierMFA: !settings.requireCashierMFA })}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 ${settings.requireCashierMFA ? 'bg-primary' : 'bg-input'}`}
+                >
+                  <span
+                    className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${settings.requireCashierMFA ? 'translate-x-5' : 'translate-x-0'}`}
+                  />
+                </button>
+              </div>
             </CardContent>
           </Card>
 

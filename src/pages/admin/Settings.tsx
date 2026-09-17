@@ -3,11 +3,21 @@ import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useSettings, type AppSettings } from '../../hooks/useSettings';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import { supabase } from '../../lib/supabase';
+
+const CURRENCIES = [
+  { symbol: '₱', name: 'Philippine Peso (PHP)' },
+  { symbol: '$', name: 'US Dollar (USD)' },
+  { symbol: '€', name: 'Euro (EUR)' },
+  { symbol: '£', name: 'British Pound (GBP)' },
+  { symbol: '¥', name: 'Japanese Yen (JPY)' },
+];
 import { Loader2, Upload, X } from 'lucide-react';
 
 export default function Settings() {
   const { settings, saveSettings } = useSettings();
+  const { currencySymbol, setCurrencySymbol } = useCurrency();
   const [formData, setFormData] = useState<AppSettings>(settings);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,26 +120,6 @@ export default function Settings() {
         </div>
       </Card>
 
-      <Card className="rounded-3xl border-none shadow-sm p-6">
-        <h2 className="text-xl font-bold mb-4">Security Settings</h2>
-        <div className="flex items-center justify-between max-w-md p-4 rounded-xl border bg-muted/20">
-          <div>
-            <h3 className="font-semibold text-foreground">Cashier 2FA</h3>
-            <p className="text-sm text-muted-foreground mt-1">Require Cashiers to use Two-Factor Authentication</p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={formData.requireCashierMFA}
-            onClick={() => setFormData(prev => ({ ...prev, requireCashierMFA: !prev.requireCashierMFA }))}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 ${formData.requireCashierMFA ? 'bg-primary' : 'bg-input'}`}
-          >
-            <span
-              className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${formData.requireCashierMFA ? 'translate-x-5' : 'translate-x-0'}`}
-            />
-          </button>
-        </div>
-      </Card>
 
       <Card className="rounded-3xl border-none shadow-sm p-6">
         <h2 className="text-xl font-bold mb-4">Theme Colors</h2>
@@ -166,6 +156,36 @@ export default function Settings() {
             onChange={(val) => handleColorChange('info', val)} 
           />
 
+        </div>
+      </Card>
+
+      <Card className="rounded-3xl border-none shadow-sm p-6">
+        <h2 className="text-xl font-bold mb-4">Currency</h2>
+        <div className="space-y-4">
+          <label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Select Currency</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {CURRENCIES.map((c) => (
+              <div 
+                key={c.symbol}
+                onClick={() => setCurrencySymbol(c.symbol)}
+                className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer border-2 transition-all ${
+                  currencySymbol === c.symbol 
+                    ? 'border-primary bg-primary/10' 
+                    : 'border-transparent bg-muted/50 hover:bg-muted'
+                }`}
+              >
+                <div className={`w-12 h-12 flex items-center justify-center rounded-full text-xl font-bold ${
+                  currencySymbol === c.symbol ? 'bg-primary text-primary-foreground' : 'bg-background text-foreground'
+                }`}>
+                  {c.symbol}
+                </div>
+                <span className="font-bold">{c.name}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 p-4 bg-amber-500/10 text-amber-700 dark:text-amber-500 rounded-xl text-sm font-semibold border border-amber-500/20">
+            Note: Changing this will instantly update the currency symbol across the POS, Dashboard, and printed receipts. It does not perform actual exchange rate conversion on past or current prices.
+          </div>
         </div>
       </Card>
 

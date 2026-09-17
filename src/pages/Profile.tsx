@@ -1,122 +1,15 @@
 import React, { useRef, useState } from 'react';
-import { LogOut, User as UserIcon, Mail, Shield, Camera, Loader2, KeyRound } from 'lucide-react';
+import { LogOut, User as UserIcon, Camera, Loader2, KeyRound } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter
-} from '../components/ui/dialog';
+
 import imageCompression from 'browser-image-compression';
 import { supabase, getStoragePathFromUrl } from '../lib/supabase';
 import { ImageCropperModal } from '../components/ImageCropperModal';
 
-function ChangePasswordDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    setLoading(true);
-    
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: newPassword
-    });
-
-    setLoading(false);
-
-    if (updateError) {
-      setError(updateError.message);
-    } else {
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        setNewPassword('');
-        setConfirmPassword('');
-        onClose();
-      }, 2000);
-    }
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Change Password</DialogTitle>
-          <DialogDescription>
-            Enter a new password for your account.
-          </DialogDescription>
-        </DialogHeader>
-        
-        {success ? (
-          <div className="p-4 bg-green-500/10 text-green-600 rounded-xl font-medium text-center">
-            Password updated successfully!
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {error && (
-              <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-xl font-medium">
-                {error}
-              </div>
-            )}
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-muted-foreground">New Password</label>
-              <Input 
-                type="password" 
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-muted-foreground">Confirm Password</label>
-              <Input 
-                type="password" 
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-            
-            <DialogFooter className="mt-4">
-              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading && <Loader2 className="animate-spin mr-2" size={16} />}
-                Update Password
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 export default function Profile() {
   const { profile, updateProfile, signOut } = useAuth();
@@ -126,7 +19,34 @@ export default function Profile() {
   const [cropperOpen, setCropperOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [currentFileExt, setCurrentFileExt] = useState<string>('jpg');
-  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [changingPass, setChangingPass] = useState(false);
+  const [passMsg, setPassMsg] = useState({ text: '', type: '' });
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword || newPassword.length < 6) {
+      setPassMsg({ text: 'Password must be at least 6 characters', type: 'error' });
+      return;
+    }
+    
+    setChangingPass(true);
+    setPassMsg({ text: '', type: '' });
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+      setPassMsg({ text: 'Password updated successfully!', type: 'success' });
+      setNewPassword('');
+    } catch (err: any) {
+      setPassMsg({ text: err.message || 'Failed to update password', type: 'error' });
+    } finally {
+      setChangingPass(false);
+    }
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -191,86 +111,116 @@ export default function Profile() {
   };
 
   return (
-    <div className="flex-1 flex justify-center items-center p-8 animate-in fade-in duration-300">
-      <Card className="w-full max-w-[400px] border-none shadow-lg rounded-3xl p-8 flex flex-col items-center">
-        
-        <div className="relative mb-6 group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-          {profile?.avatar_url ? (
-            <img 
-              src={profile.avatar_url} 
-              alt="Avatar" 
-              className="w-28 h-28 rounded-full object-cover border-4 border-primary shadow-md"
+    <div className="flex-1 flex flex-col p-8 gap-8 animate-in fade-in duration-300 overflow-y-auto w-full mx-auto max-w-7xl">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-extrabold tracking-tight">My Profile</h1>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Avatar & Summary */}
+        <Card className="col-span-1 border-none shadow-sm rounded-3xl p-8 flex flex-col items-center bg-card h-fit">
+          <div className="relative mb-6 group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+            {profile?.avatar_url ? (
+              <img 
+                src={profile.avatar_url} 
+                alt="Avatar" 
+                className="w-32 h-32 rounded-full object-cover border-4 border-primary shadow-md"
+              />
+            ) : (
+              <div className="w-32 h-32 rounded-full bg-primary/10 text-primary border-4 border-primary flex items-center justify-center shadow-md text-4xl font-extrabold">
+                {profile?.full_name ? getInitials(profile.full_name) : 'U'}
+              </div>
+            )}
+            
+            <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              {isUploading ? <Loader2 className="animate-spin text-white" size={28} /> : <Camera className="text-white" size={28} />}
+            </div>
+            
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+              accept="image/*" 
+              className="hidden" 
             />
-          ) : (
-            <div className="w-28 h-28 rounded-full bg-primary/10 text-primary border-4 border-primary flex items-center justify-center shadow-md text-3xl font-extrabold">
-              {profile?.full_name ? getInitials(profile.full_name) : 'U'}
-            </div>
-          )}
-          
-          <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            {isUploading ? <Loader2 className="animate-spin text-white" size={24} /> : <Camera className="text-white" size={24} />}
           </div>
-          
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileUpload} 
-            accept="image/*" 
-            className="hidden" 
-          />
-        </div>
 
-        <h2 className="text-2xl font-extrabold mb-2">{profile?.full_name || 'Staff User'}</h2>
-        
-        <div className="flex flex-col gap-4 w-full mt-6">
-          <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-2xl">
-            <UserIcon size={24} className="text-muted-foreground" />
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Name</span>
-              <span className="font-bold text-foreground">{profile?.full_name || 'Staff User'}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-2xl">
-            <Mail size={24} className="text-muted-foreground" />
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Email</span>
-              <span className="font-bold text-foreground">{profile?.email || 'N/A'}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-            <Shield size={24} className="text-primary" />
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Role</span>
-              <span className="font-bold text-primary capitalize">{profile?.role || 'Cashier'}</span>
-            </div>
-          </div>
-        </div>
+          <h2 className="text-2xl font-extrabold mb-1">{profile?.full_name || 'Staff User'}</h2>
+          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-8">{profile?.role || 'Cashier'}</div>
 
-        {profile?.role !== 'cashier' && (
           <Button 
-            variant="outline" 
-            className="w-full h-14 mt-10 rounded-2xl font-bold text-base gap-2 shadow-none"
-            onClick={() => setPasswordDialogOpen(true)}
+            variant="destructive" 
+            className="w-full h-12 rounded-xl font-bold gap-2 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors shadow-none"
+            onClick={signOut}
           >
-            <KeyRound size={20} /> Change Password
+            <LogOut size={18} /> Logout
           </Button>
-        )}
+        </Card>
 
-        <Button 
-          variant="destructive" 
-          className="w-full h-14 mt-4 rounded-2xl font-bold text-base gap-2 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors shadow-none"
-          onClick={signOut}
-        >
-          <LogOut size={20} /> Logout
-        </Button>
-      </Card>
+        {/* Right Column: Detailed Info & Password */}
+        <div className="col-span-1 lg:col-span-2 flex flex-col gap-8">
+          
+          <Card className="w-full border-none shadow-sm rounded-3xl overflow-hidden bg-card">
+            <div className="bg-muted/30 border-b border-border/50 p-6">
+              <h3 className="text-xl font-bold flex items-center gap-2"><UserIcon className="text-primary" size={24} /> Profile Information</h3>
+            </div>
+            <div className="p-6 flex flex-col gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Full Name</span>
+                  <div className="font-semibold text-lg">{profile?.full_name || 'Staff User'}</div>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Email Address</span>
+                  <div className="font-semibold text-lg">{profile?.email || 'N/A'}</div>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Role</span>
+                  <div className="font-semibold text-lg capitalize">{profile?.role || 'Cashier'}</div>
+                </div>
+              </div>
+            </div>
+          </Card>
 
-      <ChangePasswordDialog 
-        isOpen={passwordDialogOpen} 
-        onClose={() => setPasswordDialogOpen(false)} 
-      />
+          {profile?.role !== 'cashier' && (
+            <Card className="w-full border-none shadow-sm rounded-3xl overflow-hidden bg-card">
+              <div className="bg-muted/30 border-b border-border/50 p-6">
+                <div className="flex items-center gap-2 mb-1">
+                  <KeyRound className="text-primary" size={24} />
+                  <h3 className="text-xl font-bold">Change My Password</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">Update your own account password</p>
+              </div>
+              <div className="p-6 max-w-md">
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">New Password</label>
+                    <Input 
+                      type="password" 
+                      value={newPassword} 
+                      onChange={e => setNewPassword(e.target.value)} 
+                      placeholder="••••••••" 
+                      required 
+                      minLength={6} 
+                      className="h-12 bg-muted/50 border-none rounded-xl"
+                    />
+                  </div>
+                  
+                  {passMsg.text && (
+                    <div className={`p-3 rounded-xl text-sm font-semibold ${passMsg.type === 'error' ? 'bg-destructive/10 text-destructive' : 'bg-green-500/10 text-green-600'}`}>
+                      {passMsg.text}
+                    </div>
+                  )}
+
+                  <Button type="submit" disabled={changingPass} variant="secondary" className="w-full h-12 rounded-xl font-bold bg-muted/80 hover:bg-muted text-foreground">
+                    {changingPass ? <Loader2 className="animate-spin" /> : 'Update Password'}
+                  </Button>
+                </form>
+              </div>
+            </Card>
+          )}
+        </div>
+      </div>
 
       {cropImageSrc && (
         <ImageCropperModal

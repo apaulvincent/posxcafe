@@ -119,12 +119,12 @@ export default function Profile() {
   };
 
   return (
-    <div className="flex-1 flex flex-col p-8 gap-8 animate-in fade-in duration-300 overflow-y-auto w-full mx-auto max-w-7xl">
+    <div className="flex-1 overflow-y-auto pr-4 pb-8 space-y-6 animate-in fade-in duration-300 w-full">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-extrabold tracking-tight">My Profile</h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-8">
         {/* Left Column: Avatar & Summary */}
         <Card className="col-span-1 border-none shadow-sm rounded-3xl p-8 flex flex-col items-center bg-card h-fit">
           <div className="relative mb-6 group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
@@ -166,7 +166,7 @@ export default function Profile() {
         </Card>
 
         {/* Right Column: Detailed Info & Password */}
-        <div className="col-span-1 lg:col-span-2 flex flex-col gap-8">
+        <div className="flex flex-col gap-8">
           
           <Card className="w-full border-none shadow-sm rounded-3xl overflow-hidden bg-card">
             <div className="bg-muted/30 border-b border-border/50 p-6">

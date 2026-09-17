@@ -7,14 +7,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Calculator, ClipboardList, Coffee, Layers, LayoutDashboard, Loader2, Package, Tag, Grid, Users as UsersIcon } from 'lucide-react';
-import React from 'react';
+import { Bell, Calculator, ClipboardList, Coffee, Layers, LayoutDashboard, Loader2, Package, Tag, Grid, Users as UsersIcon, Settings as SettingsIcon } from 'lucide-react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { GlobalSearch } from './components/GlobalSearch';
 import { Badge } from './components/ui/badge';
 import { useAuth } from './hooks/useAuth';
 import { useMFA } from './hooks/useMFA';
 import { useOrders } from './hooks/useOrders';
+import { useSettings, applyThemeColors } from './hooks/useSettings';
 import { syncAll } from './lib/sync';
 import Categories from './pages/admin/Categories';
 import Orders from './pages/admin/Orders';
@@ -23,6 +24,7 @@ import CurrencySelector from './pages/admin/CurrencySelector';
 import Discounts from './pages/admin/Discounts';
 import Tables from './pages/admin/Tables';
 import Users from './pages/admin/Users';
+import Settings from './pages/admin/Settings';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';

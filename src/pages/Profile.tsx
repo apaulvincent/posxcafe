@@ -248,13 +248,15 @@ export default function Profile() {
           </div>
         </div>
 
-        <Button 
-          variant="outline" 
-          className="w-full h-14 mt-10 rounded-2xl font-bold text-base gap-2 shadow-none"
-          onClick={() => setPasswordDialogOpen(true)}
-        >
-          <KeyRound size={20} /> Change Password
-        </Button>
+        {profile?.role !== 'cashier' && (
+          <Button 
+            variant="outline" 
+            className="w-full h-14 mt-10 rounded-2xl font-bold text-base gap-2 shadow-none"
+            onClick={() => setPasswordDialogOpen(true)}
+          >
+            <KeyRound size={20} /> Change Password
+          </Button>
+        )}
 
         <Button 
           variant="destructive" 

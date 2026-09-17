@@ -157,15 +157,25 @@ const Topbar = ({ profile }: { profile: any }) => {
 };
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { session, loading: authLoading } = useAuth();
+  const { session, profile, loading: authLoading } = useAuth();
   const { isAAL2, hasMFA, loading: mfaLoading } = useMFA();
+  const { settings } = useSettings();
 
   if (authLoading || mfaLoading) {
     return <div className="flex h-screen w-screen items-center justify-center"><Loader2 className="animate-spin text-primary" size={48} /></div>;
   }
 
-  if (!session || (!isAAL2 && hasMFA) || (!hasMFA && session)) {
+  if (!session) {
     return <Navigate to="/login" replace />;
+  }
+
+  const userRole = session.user?.user_metadata?.role || profile?.role;
+  const isCashierSkippingMFA = userRole === 'cashier' && !settings.requireCashierMFA;
+
+  if (!isCashierSkippingMFA) {
+    if (!hasMFA || !isAAL2) {
+      return <Navigate to="/login" replace />;
+    }
   }
 
   return <>{children}</>;

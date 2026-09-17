@@ -36,7 +36,7 @@ export default function Login() {
   const needsLogin = !session;
   const needsMFAEnrollment = session && !hasMFA && !isCashierSkippingMFA;
   const needsMFAChallenge = session && hasMFA && !isAAL2 && !isCashierSkippingMFA;
-  const isAuthenticatedAndVerified = session && (isCashierSkippingMFA || isAAL2 || !hasMFA);
+  const isAuthenticatedAndVerified = session && (isCashierSkippingMFA || (hasMFA && isAAL2));
 
   const hasAttemptedEnroll = React.useRef(false);
 

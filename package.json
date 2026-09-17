@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed": "node scripts/seed-products.mjs && node scripts/seed-data.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

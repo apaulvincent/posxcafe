@@ -19,11 +19,13 @@ export default function Users() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // New Account State
+  // New Account / Edit State
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState('cashier');
+  const [newPin, setNewPin] = useState('');
   const [creating, setCreating] = useState(false);
   const [createMsg, setCreateMsg] = useState({ text: '', type: '' });
 
@@ -49,32 +51,102 @@ export default function Users() {
     }
   };
 
-  const handleCreateUser = async (e: React.FormEvent) => {
+  const handleEditClick = (u: any) => {
+    setEditingUserId(u.id);
+    setNewName(u.full_name || '');
+    setNewEmail(u.email || '');
+    setNewRole(u.role || 'cashier');
+    setNewPin(u.pin || '');
+    setNewPassword('');
+    setCreateMsg({ text: '', type: '' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUserId(null);
+    setNewName('');
+    setNewEmail('');
+    setNewRole('cashier');
+    setNewPin('');
+    setNewPassword('');
+    setCreateMsg({ text: '', type: '' });
+  };
+
+  const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEmail || !newPassword || !newName) return;
+    if (!newName) return;
+    
+    if (!editingUserId) {
+      if (!newEmail) return;
+      const passwordToUse = newRole === 'cashier' ? newPin : newPassword;
+      if (!passwordToUse || passwordToUse.length < 6) {
+        setCreateMsg({ text: 'Password or PIN must be at least 6 characters', type: 'error' });
+        return;
+      }
+    }
+
     setCreating(true);
     setCreateMsg({ text: '', type: '' });
 
     try {
-      const { error } = await tempClient.auth.signUp({
-        email: newEmail,
-        password: newPassword,
-        options: {
-          data: {
-            full_name: newName,
-            role: newRole
-          }
+      if (editingUserId) {
+        // Edit Mode
+        // 1. Update the profile first
+        const passwordToUse = newRole === 'cashier' ? newPin : newPassword;
+        const updates: any = {
+          full_name: newName,
+          role: newRole
+        };
+        // Update PIN if they provided a new one
+        if (newRole === 'cashier' && newPin) {
+          updates.pin = newPin;
         }
-      });
 
-      if (error) throw error;
-      setCreateMsg({ text: 'User created successfully!', type: 'success' });
-      setNewEmail('');
-      setNewPassword('');
-      setNewName('');
-      setTimeout(() => fetchUsers(), 1500);
+        const { error: profileError } = await supabase.from('profiles').update(updates).eq('id', editingUserId);
+        if (profileError) throw profileError;
+
+        // 2. Call secure RPC to update email/password
+        const { error: rpcError } = await supabase.rpc('admin_update_user_credentials', {
+          p_user_id: editingUserId,
+          p_email: newEmail,
+          p_password: passwordToUse || null
+        });
+
+        if (rpcError) throw rpcError;
+
+        setCreateMsg({ text: 'Staff details updated successfully!', type: 'success' });
+        
+        setTimeout(() => {
+          fetchUsers();
+          handleCancelEdit();
+        }, 1500);
+
+      } else {
+        // Create Mode
+        const passwordToUse = newRole === 'cashier' ? newPin : newPassword;
+        const { data, error } = await tempClient.auth.signUp({
+          email: newEmail,
+          password: passwordToUse,
+          options: {
+            data: {
+              full_name: newName,
+              role: newRole,
+              pin: newRole === 'cashier' ? newPin : null
+            }
+          }
+        });
+
+        if (error) throw error;
+        
+        if (data?.user?.id && newRole === 'cashier' && newPin) {
+          await supabase.from('profiles').update({ pin: newPin }).eq('id', data.user.id);
+        }
+
+        setCreateMsg({ text: 'User created successfully!', type: 'success' });
+        handleCancelEdit();
+        setTimeout(() => fetchUsers(), 1500);
+      }
     } catch (err: any) {
-      setCreateMsg({ text: err.message || 'Failed to create user', type: 'error' });
+      setCreateMsg({ text: err.message || 'Failed to save user', type: 'error' });
     } finally {
       setCreating(false);
     }
@@ -117,24 +189,22 @@ export default function Users() {
         <Card className="border-none shadow-sm bg-card rounded-3xl overflow-hidden">
           <CardHeader className="bg-muted/30 border-b border-border/50 pb-6">
             <CardTitle className="flex items-center gap-2 text-xl">
-              <UserPlus className="text-primary" size={24} /> Add New Staff
+              <UserPlus className="text-primary" size={24} /> {editingUserId ? 'Edit Staff' : 'Add New Staff'}
             </CardTitle>
-            <CardDescription>Create manager or cashier accounts</CardDescription>
+            <CardDescription>{editingUserId ? 'Update staff name and role' : 'Create manager or cashier accounts'}</CardDescription>
           </CardHeader>
           <CardContent className="p-6">
-            <form onSubmit={handleCreateUser} className="space-y-4">
+            <form onSubmit={handleSaveUser} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium leading-none">Full Name</label>
                 <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Jane Doe" required />
               </div>
+              
               <div className="space-y-2">
                 <label className="text-sm font-medium leading-none">Email</label>
                 <Input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="jane@cafe.com" required />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Password</label>
-                <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
-              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-medium leading-none">Role</label>
                 <Select value={newRole} onValueChange={(val) => setNewRole(val || '')}>
@@ -147,6 +217,22 @@ export default function Users() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {newRole === 'cashier' ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">
+                    6-Digit PIN (Used as Password) {editingUserId && <span className="text-muted-foreground font-normal ml-2">(Leave blank to keep current)</span>}
+                  </label>
+                  <Input type="text" value={newPin} onChange={e => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder={editingUserId ? "••••••" : "123456"} minLength={editingUserId ? 0 : 6} maxLength={6} required={!editingUserId} />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">
+                    Password {editingUserId && <span className="text-muted-foreground font-normal ml-2">(Leave blank to keep current)</span>}
+                  </label>
+                  <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" required={!editingUserId} minLength={editingUserId ? 0 : 6} />
+                </div>
+              )}
               
               {createMsg.text && (
                 <div className={`p-3 rounded-lg text-sm font-semibold ${createMsg.type === 'error' ? 'bg-destructive/10 text-destructive' : 'bg-green-500/10 text-green-600'}`}>
@@ -154,9 +240,16 @@ export default function Users() {
                 </div>
               )}
 
-              <Button type="submit" disabled={creating} className="w-full h-12 rounded-xl font-bold">
-                {creating ? <Loader2 className="animate-spin" /> : 'Create Account'}
-              </Button>
+              <div className="flex gap-4 pt-2">
+                <Button type="submit" disabled={creating} className="flex-1 h-12 rounded-xl font-bold">
+                  {creating ? <Loader2 className="animate-spin" /> : editingUserId ? 'Update Account' : 'Create Account'}
+                </Button>
+                {editingUserId && (
+                  <Button type="button" variant="outline" onClick={handleCancelEdit} disabled={creating} className="h-12 rounded-xl font-bold px-6">
+                    Cancel
+                  </Button>
+                )}
+              </div>
             </form>
           </CardContent>
         </Card>
@@ -208,8 +301,15 @@ export default function Users() {
                         <span className="font-bold text-foreground">{u.full_name}</span>
                         <span className="text-sm text-muted-foreground">{u.email}</span>
                       </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${u.role === 'admin' ? 'bg-primary/20 text-primary' : u.role === 'manager' ? 'bg-blue-500/20 text-blue-600' : 'bg-muted text-muted-foreground'}`}>
-                        {u.role}
+                      <div className="flex items-center gap-3">
+                        <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${u.role === 'admin' ? 'bg-primary/20 text-primary' : u.role === 'manager' ? 'bg-blue-500/20 text-blue-600' : 'bg-muted text-muted-foreground'}`}>
+                          {u.role}
+                        </div>
+                        {u.role !== 'admin' && (
+                          <Button variant="ghost" size="sm" onClick={() => handleEditClick(u)} className="h-7 px-3 text-xs font-semibold">
+                            Edit
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}

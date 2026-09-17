@@ -26,10 +26,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Test and Seeder files
-test*.mjs
-check.mjs
-seed*.mjs
+# (Scripts are now in the scripts/ folder and tracked)
 
 # AI & Analysis Outputs
 graphify-out/

@@ -1,11 +1,122 @@
 import React, { useRef, useState } from 'react';
-import { LogOut, User as UserIcon, Mail, Shield, Camera, Loader2 } from 'lucide-react';
+import { LogOut, User as UserIcon, Mail, Shield, Camera, Loader2, KeyRound } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from '../components/ui/dialog';
 import imageCompression from 'browser-image-compression';
 import { supabase, getStoragePathFromUrl } from '../lib/supabase';
 import { ImageCropperModal } from '../components/ImageCropperModal';
+
+function ChangePasswordDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
+    
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    setLoading(false);
+
+    if (updateError) {
+      setError(updateError.message);
+    } else {
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        setNewPassword('');
+        setConfirmPassword('');
+        onClose();
+      }, 2000);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Change Password</DialogTitle>
+          <DialogDescription>
+            Enter a new password for your account.
+          </DialogDescription>
+        </DialogHeader>
+        
+        {success ? (
+          <div className="p-4 bg-green-500/10 text-green-600 rounded-xl font-medium text-center">
+            Password updated successfully!
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {error && (
+              <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-xl font-medium">
+                {error}
+              </div>
+            )}
+            
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-muted-foreground">New Password</label>
+              <Input 
+                type="password" 
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-muted-foreground">Confirm Password</label>
+              <Input 
+                type="password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            
+            <DialogFooter className="mt-4">
+              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading && <Loader2 className="animate-spin mr-2" size={16} />}
+                Update Password
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function Profile() {
   const { profile, updateProfile, signOut } = useAuth();
@@ -15,6 +126,7 @@ export default function Profile() {
   const [cropperOpen, setCropperOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [currentFileExt, setCurrentFileExt] = useState<string>('jpg');
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
 
   const getInitials = (name: string) => {
     return name
@@ -137,13 +249,26 @@ export default function Profile() {
         </div>
 
         <Button 
+          variant="outline" 
+          className="w-full h-14 mt-10 rounded-2xl font-bold text-base gap-2 shadow-none"
+          onClick={() => setPasswordDialogOpen(true)}
+        >
+          <KeyRound size={20} /> Change Password
+        </Button>
+
+        <Button 
           variant="destructive" 
-          className="w-full h-14 mt-10 rounded-2xl font-bold text-base gap-2 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors shadow-none"
+          className="w-full h-14 mt-4 rounded-2xl font-bold text-base gap-2 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors shadow-none"
           onClick={signOut}
         >
           <LogOut size={20} /> Logout
         </Button>
       </Card>
+
+      <ChangePasswordDialog 
+        isOpen={passwordDialogOpen} 
+        onClose={() => setPasswordDialogOpen(false)} 
+      />
 
       {cropImageSrc && (
         <ImageCropperModal

@@ -20,11 +20,18 @@ export default function Profile() {
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [currentFileExt, setCurrentFileExt] = useState<string>('jpg');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPass, setChangingPass] = useState(false);
   const [passMsg, setPassMsg] = useState({ text: '', type: '' });
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      setPassMsg({ text: 'Passwords do not match', type: 'error' });
+      return;
+    }
+    
     if (!newPassword || newPassword.length < 6) {
       setPassMsg({ text: 'Password must be at least 6 characters', type: 'error' });
       return;
@@ -41,6 +48,7 @@ export default function Profile() {
       if (error) throw error;
       setPassMsg({ text: 'Password updated successfully!', type: 'success' });
       setNewPassword('');
+      setConfirmPassword('');
     } catch (err: any) {
       setPassMsg({ text: err.message || 'Failed to update password', type: 'error' });
     } finally {
@@ -199,6 +207,18 @@ export default function Profile() {
                       type="password" 
                       value={newPassword} 
                       onChange={e => setNewPassword(e.target.value)} 
+                      placeholder="••••••••" 
+                      required 
+                      minLength={6} 
+                      className="h-12 bg-muted/50 border-none rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Confirm Password</label>
+                    <Input 
+                      type="password" 
+                      value={confirmPassword} 
+                      onChange={e => setConfirmPassword(e.target.value)} 
                       placeholder="••••••••" 
                       required 
                       minLength={6} 

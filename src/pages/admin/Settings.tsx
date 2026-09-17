@@ -111,6 +111,27 @@ export default function Settings() {
       </Card>
 
       <Card className="rounded-3xl border-none shadow-sm p-6">
+        <h2 className="text-xl font-bold mb-4">Security Settings</h2>
+        <div className="flex items-center justify-between max-w-md p-4 rounded-xl border bg-muted/20">
+          <div>
+            <h3 className="font-semibold text-foreground">Cashier 2FA</h3>
+            <p className="text-sm text-muted-foreground mt-1">Require Cashiers to use Two-Factor Authentication</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={formData.requireCashierMFA}
+            onClick={() => setFormData(prev => ({ ...prev, requireCashierMFA: !prev.requireCashierMFA }))}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 ${formData.requireCashierMFA ? 'bg-primary' : 'bg-input'}`}
+          >
+            <span
+              className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${formData.requireCashierMFA ? 'translate-x-5' : 'translate-x-0'}`}
+            />
+          </button>
+        </div>
+      </Card>
+
+      <Card className="rounded-3xl border-none shadow-sm p-6">
         <h2 className="text-xl font-bold mb-4">Theme Colors</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           

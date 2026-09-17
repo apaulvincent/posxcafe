@@ -23,7 +23,10 @@ export default function Login() {
   const { hasMFA, isAAL2, loading: mfaLoading, qrCode, enrollMFA, verifyEnrollment, verifyLoginChallenge, error: mfaError, checkMFAStatus } = useMFA();
 
   const userRole = session?.user?.user_metadata?.role || profile?.role;
-  const isCashier = userRole === 'cashier';
+  const { settings } = useSettings();
+  
+  // A cashier skips MFA only if the global setting requireCashierMFA is false (the default)
+  const isCashierSkippingMFA = userRole === 'cashier' && !settings.requireCashierMFA;
 
   // Terminal Lock State
   const [failedAttempts, setFailedAttempts] = useState(() => parseInt(localStorage.getItem('terminal_failed_pin') || '0'));
@@ -31,12 +34,11 @@ export default function Login() {
 
   // Determine state
   const needsLogin = !session;
-  const needsMFAEnrollment = session && !hasMFA && !isCashier;
-  const needsMFAChallenge = session && hasMFA && !isAAL2 && !isCashier;
-  const isAuthenticatedAndVerified = session && (isCashier || isAAL2 || !hasMFA);
+  const needsMFAEnrollment = session && !hasMFA && !isCashierSkippingMFA;
+  const needsMFAChallenge = session && hasMFA && !isAAL2 && !isCashierSkippingMFA;
+  const isAuthenticatedAndVerified = session && (isCashierSkippingMFA || isAAL2 || !hasMFA);
 
   const hasAttemptedEnroll = React.useRef(false);
-  const { settings } = useSettings();
 
   // Redirect if fully authenticated
   React.useEffect(() => {
@@ -44,14 +46,14 @@ export default function Login() {
     
     if (isAuthenticatedAndVerified) {
       navigate('/');
-    } else if (session && !hasMFA && !isCashier && !hasAttemptedEnroll.current) {
+    } else if (session && !hasMFA && !isCashierSkippingMFA && !hasAttemptedEnroll.current) {
       // Force user to enroll if they haven't
       if (!qrCode && !mfaLoading) {
         hasAttemptedEnroll.current = true;
         enrollMFA();
       }
     }
-  }, [isAuthenticatedAndVerified, hasMFA, isAAL2, session, navigate, qrCode, mfaLoading, enrollMFA, isCashier]);
+  }, [isAuthenticatedAndVerified, hasMFA, isAAL2, session, navigate, qrCode, mfaLoading, enrollMFA, isCashierSkippingMFA]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

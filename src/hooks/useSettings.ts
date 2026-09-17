@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 export interface AppSettings {
   logoUrl?: string;
+  requireCashierMFA?: boolean;
   colors: {
     primary?: string;
     secondary?: string;
@@ -14,6 +15,7 @@ export interface AppSettings {
 
 const DEFAULT_SETTINGS: AppSettings = {
   logoUrl: '',
+  requireCashierMFA: false,
   colors: {
     primary: '#11572c',
     secondary: '#eaf1eb',
@@ -32,6 +34,7 @@ export function useSettings() {
         const parsed = JSON.parse(saved);
         return {
           logoUrl: parsed.logoUrl ?? DEFAULT_SETTINGS.logoUrl,
+          requireCashierMFA: parsed.requireCashierMFA ?? DEFAULT_SETTINGS.requireCashierMFA,
           colors: { ...DEFAULT_SETTINGS.colors, ...(parsed.colors || {}) }
         };
       } catch (e) {

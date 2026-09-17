@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Bell, Calculator, ClipboardList, Coffee, Layers, LayoutDashboard, Loader2, Package, Tag, Grid, Users as UsersIcon, Settings as SettingsIcon } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { GlobalSearch } from './components/GlobalSearch';
 import { Badge } from './components/ui/badge';
@@ -63,15 +63,20 @@ const Topbar = ({ profile }: { profile: any }) => {
     };
   }, []);
 
+  const { settings } = useSettings();
   const d = new Date();
   const dateStr = `${d.toLocaleDateString('en-GB', { weekday: 'long' })}, ${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`;
   return (
     <header className="flex items-center justify-between w-full h-20">
       <div className="flex items-center gap-8">
-        <div className="font-extrabold text-primary leading-none text-3xl tracking-tight">
-          OLIVE's<br/>
-          CAFE
-        </div>
+        {settings.logoUrl ? (
+          <img src={settings.logoUrl} alt="Logo" className="h-16 object-contain" />
+        ) : (
+          <div className="font-extrabold text-primary leading-none text-3xl tracking-tight">
+            OLIVE's<br/>
+            CAFE
+          </div>
+        )}
         <div className="text-sm font-medium text-primary">
           {dateStr}
         </div>
@@ -169,6 +174,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 function AppLayout() {
   const location = useLocation();
   const { profile } = useAuth();
+  const { settings } = useSettings();
+  
+  React.useEffect(() => {
+    applyThemeColors(settings.colors);
+  }, [settings.colors]);
   
   if (location.pathname === '/login') {
     return (
@@ -222,6 +232,9 @@ function AppLayout() {
                <Link to="/admin/users" className={`w-14 h-14 rounded-full flex items-center justify-center shadow-sm transition-all ${location.pathname === '/admin/users' ? 'bg-primary text-primary-foreground' : 'bg-card text-primary hover:bg-primary/10'}`}>
                  <UsersIcon size={24} />
                </Link>
+               <Link to="/admin/settings" className={`w-14 h-14 rounded-full flex items-center justify-center shadow-sm transition-all ${location.pathname === '/admin/settings' ? 'bg-primary text-primary-foreground' : 'bg-card text-primary hover:bg-primary/10'}`}>
+                 <SettingsIcon size={24} />
+               </Link>
              </>
            ) : null}
         </div>
@@ -238,6 +251,7 @@ function AppLayout() {
             <Route path="/admin/orders" element={<AuthGuard><Orders /></AuthGuard>} />
             <Route path="/admin/currency-selector" element={<AuthGuard><CurrencySelector /></AuthGuard>} />
             <Route path="/admin/users" element={<AuthGuard><Users /></AuthGuard>} />
+            <Route path="/admin/settings" element={<AuthGuard><Settings /></AuthGuard>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

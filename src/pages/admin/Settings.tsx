@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { useSettings, AppSettings } from '../../hooks/useSettings';
+import { useSettings, type AppSettings } from '../../hooks/useSettings';
 import { supabase } from '../../lib/supabase';
 import { Loader2, Upload, X } from 'lucide-react';
 

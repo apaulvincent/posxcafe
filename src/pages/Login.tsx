@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useMFA } from '../hooks/useMFA';
+import { useSettings } from '../hooks/useSettings';
 import { Loader2, Lock, Mail } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -18,31 +19,39 @@ export default function Login() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   
   const navigate = useNavigate();
-  const { session, loading: authLoading } = useAuth();
+  const { session, profile, loading: authLoading } = useAuth();
   const { hasMFA, isAAL2, loading: mfaLoading, qrCode, enrollMFA, verifyEnrollment, verifyLoginChallenge, error: mfaError, checkMFAStatus } = useMFA();
+
+  const userRole = session?.user?.user_metadata?.role || profile?.role;
+  const isCashier = userRole === 'cashier';
+
+  // Terminal Lock State
+  const [failedAttempts, setFailedAttempts] = useState(() => parseInt(localStorage.getItem('terminal_failed_pin') || '0'));
+  const isTerminalLocked = failedAttempts >= 3;
 
   // Determine state
   const needsLogin = !session;
-  const needsMFAEnrollment = session && !hasMFA;
-  const needsMFAChallenge = session && hasMFA && !isAAL2;
-  const isAuthenticatedAndVerified = session && (isAAL2 || !hasMFA);
+  const needsMFAEnrollment = session && !hasMFA && !isCashier;
+  const needsMFAChallenge = session && hasMFA && !isAAL2 && !isCashier;
+  const isAuthenticatedAndVerified = session && (isCashier || isAAL2 || !hasMFA);
 
   const hasAttemptedEnroll = React.useRef(false);
+  const { settings } = useSettings();
 
   // Redirect if fully authenticated
   React.useEffect(() => {
     if (authLoading || mfaLoading) return;
     
-    if (isAuthenticatedAndVerified && hasMFA && isAAL2) {
+    if (isAuthenticatedAndVerified) {
       navigate('/');
-    } else if (session && !hasMFA && !hasAttemptedEnroll.current) {
+    } else if (session && !hasMFA && !isCashier && !hasAttemptedEnroll.current) {
       // Force user to enroll if they haven't
       if (!qrCode && !mfaLoading) {
         hasAttemptedEnroll.current = true;
         enrollMFA();
       }
     }
-  }, [isAuthenticatedAndVerified, hasMFA, isAAL2, session, navigate, qrCode, mfaLoading, enrollMFA]);
+  }, [isAuthenticatedAndVerified, hasMFA, isAAL2, session, navigate, qrCode, mfaLoading, enrollMFA, isCashier]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +61,10 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       
+      // Admin/Manager login success! Unlock the terminal.
+      setFailedAttempts(0);
+      localStorage.removeItem('terminal_failed_pin');
+
       // We must re-check MFA status now that we have a session!
       await checkMFAStatus();
     } catch (err: any) {
@@ -63,16 +76,33 @@ export default function Login() {
 
   const handlePinLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isTerminalLocked) {
+      setLocalError('Terminal locked due to too many failed attempts. Admin unlock required.');
+      return;
+    }
     if (pin.length < 6) return;
     setIsLoggingIn(true);
     setLocalError(null);
     try {
       const { data: emailData, error: rpcError } = await supabase.rpc('get_email_by_pin', { p_pin: pin });
       if (rpcError || !emailData) {
-        throw new Error('Invalid PIN or cashier not found.');
+        const newFails = failedAttempts + 1;
+        setFailedAttempts(newFails);
+        localStorage.setItem('terminal_failed_pin', newFails.toString());
+        throw new Error(newFails >= 3 ? 'Terminal locked due to too many failed attempts. Admin unlock required.' : `Invalid PIN. ${3 - newFails} attempts remaining.`);
       }
       const { error } = await supabase.auth.signInWithPassword({ email: emailData, password: pin });
-      if (error) throw error;
+      if (error) {
+        const newFails = failedAttempts + 1;
+        setFailedAttempts(newFails);
+        localStorage.setItem('terminal_failed_pin', newFails.toString());
+        throw new Error(newFails >= 3 ? 'Terminal locked due to too many failed attempts. Admin unlock required.' : `Invalid PIN. ${3 - newFails} attempts remaining.`);
+      }
+      
+      // Success! Reset attempts
+      setFailedAttempts(0);
+      localStorage.removeItem('terminal_failed_pin');
+      
       await checkMFAStatus();
     } catch (err: any) {
       setLocalError(err.message);
@@ -101,15 +131,24 @@ export default function Login() {
     <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md shadow-lg border-none">
         <CardHeader className="text-center space-y-2 pb-6">
-          <CardTitle className="text-2xl font-extrabold text-primary tracking-tight">
-            OLIVE GROUNDS COFFEE
-          </CardTitle>
+          {settings.logoUrl ? (
+            <img src={settings.logoUrl} alt="Logo" className="h-20 mx-auto object-contain mb-4" />
+          ) : (
+            <CardTitle className="text-2xl font-extrabold text-primary tracking-tight">
+              OLIVE GROUNDS COFFEE
+            </CardTitle>
+          )}
           <CardDescription>Staff Portal</CardDescription>
         </CardHeader>
         <CardContent>
           {(localError || mfaError) && (
             <div className="bg-destructive/10 text-destructive p-3 rounded-lg mb-6 text-sm font-medium text-center">
               {localError || mfaError}
+            </div>
+          )}
+          {isTerminalLocked && !localError && !mfaError && (
+            <div className="bg-destructive/10 text-destructive p-3 rounded-lg mb-6 text-sm font-medium text-center">
+              Terminal locked due to too many failed attempts. Admin unlock required.
             </div>
           )}
 
@@ -140,12 +179,13 @@ export default function Login() {
                             className="pl-10 h-14 text-center tracking-[0.5rem] text-xl" 
                             required 
                             autoFocus
+                            disabled={isTerminalLocked}
                           />
                         </div>
                       </div>
 
-                      <Button type="submit" disabled={isLoggingIn} className="w-full h-12 text-base font-bold mt-2">
-                        {isLoggingIn ? <Loader2 className="animate-spin mr-2" /> : 'Log In'}
+                      <Button type="submit" disabled={isLoggingIn || isTerminalLocked} className="w-full h-12 text-base font-bold mt-2">
+                        {isLoggingIn ? <Loader2 className="animate-spin mr-2" /> : isTerminalLocked ? 'Terminal Locked' : 'Log In'}
                       </Button>
                     </form>
                   </TabsContent>

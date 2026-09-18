@@ -2,6 +2,15 @@
 
 A fast, modern, and **offline-first** Point of Sale (POS) Progressive Web Application (PWA).
 
+<p align="center">
+  <img src="public/screenshots/pos.png" width="48%" alt="POS Interface" />
+  <img src="public/screenshots/dashboard.png" width="48%" alt="Admin Dashboard" />
+</p>
+<p align="center">
+  <img src="public/screenshots/settings.png" width="48%" alt="Global Settings" />
+  <img src="public/screenshots/login.png" width="48%" alt="Staff Login" />
+</p>
+
 ---
 
 ## 🎯 The Problem It Solves

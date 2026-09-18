@@ -1,4 +1,5 @@
 import type { LocalOrder } from './db';
+import { getSettings } from '../hooks/useSettings';
 
 // Basic ESC/POS commands
 const ESC = '\x1B';
@@ -16,11 +17,12 @@ const NEWLINE = '\n';
 
 function generateReceiptPayload(order: LocalOrder, items: any[]): Uint8Array {
   let receipt = '';
+  const brandName = getSettings().brandName || 'POSX';
   
   // Header
   receipt += INIT;
   receipt += ALIGN_CENTER;
-  receipt += DOUBLE_HEIGHT_WIDTH + 'POSX' + NEWLINE;
+  receipt += DOUBLE_HEIGHT_WIDTH + brandName + NEWLINE;
   receipt += '123 Coffee Lane, Brew City' + NEWLINE;
   receipt += 'Tel: (555) 123-4567' + NEWLINE + NEWLINE;
   

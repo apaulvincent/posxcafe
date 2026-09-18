@@ -7,8 +7,11 @@ import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import type { LocalOrder, LocalOrderItem } from '../lib/db';
 
+import { useSettings } from '../hooks/useSettings';
+
 import { useCurrency } from '../contexts/CurrencyContext';
 export default function TrackOrder() {
+  const { settings } = useSettings();
   const { currencySymbol } = useCurrency();
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<LocalOrder | null>(null);
@@ -97,7 +100,7 @@ export default function TrackOrder() {
           </Button>
         </Link>
         <div className="font-extrabold text-primary leading-none text-right text-2xl tracking-tighter">
-          POSX
+          {settings.brandName || 'POSX'}
         </div>
       </header>
 

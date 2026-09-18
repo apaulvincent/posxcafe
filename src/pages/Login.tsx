@@ -137,7 +137,7 @@ export default function Login() {
             <img src={settings.logoUrl} alt="Logo" className="h-20 mx-auto object-contain mb-4" />
           ) : (
             <CardTitle className="text-3xl font-extrabold text-primary tracking-tighter">
-              POSX
+              {settings.brandName || 'POSX'}
             </CardTitle>
           )}
           <CardDescription>Staff Portal</CardDescription>

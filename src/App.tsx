@@ -72,7 +72,7 @@ const Topbar = ({ profile }: { profile: any }) => {
           <img src={settings.logoUrl} alt="Logo" className="h-16 object-contain" />
         ) : (
           <div className="font-extrabold text-primary leading-none text-4xl tracking-tighter">
-            POSX
+            {settings.brandName || 'POSX'}
           </div>
         )}
         <div className="text-sm font-medium text-primary">
@@ -187,6 +187,10 @@ function AppLayout() {
   React.useEffect(() => {
     applyThemeColors(settings.colors);
   }, [settings.colors]);
+
+  React.useEffect(() => {
+    document.title = settings.brandName || 'POSX';
+  }, [settings.brandName]);
   
   if (location.pathname === '/login') {
     return (

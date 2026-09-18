@@ -76,7 +76,21 @@ export default function Settings() {
       </div>
 
       <Card className="rounded-3xl border-none shadow-sm p-6">
-        <h2 className="text-xl font-bold mb-4">Brand Logo</h2>
+        <h2 className="text-xl font-bold mb-4">Branding</h2>
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2 max-w-sm">
+            <label className="text-sm font-semibold">Store / Brand Name</label>
+            <Input 
+              value={formData.brandName || ''}
+              onChange={e => setFormData(prev => ({ ...prev, brandName: e.target.value }))}
+              placeholder="e.g. POSX"
+              className="bg-muted/50 border-none h-12 rounded-xl"
+            />
+            <p className="text-xs text-muted-foreground mt-1">This will be used for the page title, dashboard header, and receipts when no logo is uploaded.</p>
+          </div>
+          
+          <div>
+            <label className="text-sm font-semibold block mb-2">Brand Logo</label>
         <div className="flex items-start gap-6">
           <div className="flex flex-col gap-2">
             {formData.logoUrl ? (
@@ -117,6 +131,8 @@ export default function Settings() {
             <p>Upload a logo to display in the header and login page.</p>
             <p className="mt-2">Recommended size: 200x80 pixels. PNG format with transparent background is best.</p>
           </div>
+        </div>
+        </div>
         </div>
       </Card>
 

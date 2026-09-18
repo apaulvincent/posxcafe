@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 export interface AppSettings {
   logoUrl?: string;
+  brandName?: string;
   requireCashierMFA?: boolean;
   colors: {
     primary?: string;
@@ -13,8 +14,9 @@ export interface AppSettings {
   };
 }
 
-const DEFAULT_SETTINGS: AppSettings = {
+export const DEFAULT_SETTINGS: AppSettings = {
   logoUrl: '',
+  brandName: 'POSX',
   requireCashierMFA: false,
   colors: {
     primary: '#11572c',
@@ -26,23 +28,26 @@ const DEFAULT_SETTINGS: AppSettings = {
   }
 };
 
-export function useSettings() {
-  const [settings, setSettingsState] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem('appSettings');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return {
-          logoUrl: parsed.logoUrl ?? DEFAULT_SETTINGS.logoUrl,
-          requireCashierMFA: parsed.requireCashierMFA ?? DEFAULT_SETTINGS.requireCashierMFA,
-          colors: { ...DEFAULT_SETTINGS.colors, ...(parsed.colors || {}) }
-        };
-      } catch (e) {
-        return DEFAULT_SETTINGS;
-      }
+export const getSettings = (): AppSettings => {
+  const saved = localStorage.getItem('appSettings');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      return {
+        logoUrl: parsed.logoUrl ?? DEFAULT_SETTINGS.logoUrl,
+        brandName: parsed.brandName ?? DEFAULT_SETTINGS.brandName,
+        requireCashierMFA: parsed.requireCashierMFA ?? DEFAULT_SETTINGS.requireCashierMFA,
+        colors: { ...DEFAULT_SETTINGS.colors, ...(parsed.colors || {}) }
+      };
+    } catch (e) {
+      return DEFAULT_SETTINGS;
     }
-    return DEFAULT_SETTINGS;
-  });
+  }
+  return DEFAULT_SETTINGS;
+};
+
+export function useSettings() {
+  const [settings, setSettingsState] = useState<AppSettings>(() => getSettings());
 
   const saveSettings = (newSettings: AppSettings) => {
     setSettingsState(newSettings);

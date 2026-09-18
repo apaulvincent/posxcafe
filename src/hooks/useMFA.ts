@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useSettings } from './useSettings';
 
 export function useMFA() {
+  const { settings } = useSettings();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasMFA, setHasMFA] = useState(false);
@@ -17,15 +19,13 @@ export function useMFA() {
   async function checkMFAStatus() {
     setLoading(true);
     try {
-      // Check current AAL
       const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       setIsAAL2(aalData?.currentLevel === 'aal2');
 
-      // Check if user has enrolled factors
       const { data, error } = await supabase.auth.mfa.listFactors();
       if (error) throw error;
       
-      const totpFactor = data?.totp?.find((f: any) => f.status === 'verified');
+      const totpFactor = data.totp.find((factor: any) => factor.status === 'verified');
       if (totpFactor) {
         setHasMFA(true);
         setFactorId(totpFactor.id);
@@ -47,7 +47,7 @@ export function useMFA() {
       const { data, error } = await supabase.auth.mfa.enroll({ 
         factorType: 'totp', 
         friendlyName,
-        issuer: 'POSX'
+        issuer: settings.brandName || 'POSX'
       });
       if (error) throw error;
       

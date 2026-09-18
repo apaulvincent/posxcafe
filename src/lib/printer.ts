@@ -20,8 +20,7 @@ function generateReceiptPayload(order: LocalOrder, items: any[]): Uint8Array {
   // Header
   receipt += INIT;
   receipt += ALIGN_CENTER;
-  receipt += DOUBLE_HEIGHT_WIDTH + 'OLIVE GROUNDS' + NEWLINE;
-  receipt += NORMAL_TEXT + BOLD_ON + 'COFFEE' + BOLD_OFF + NEWLINE;
+  receipt += DOUBLE_HEIGHT_WIDTH + 'POSX' + NEWLINE;
   receipt += '123 Coffee Lane, Brew City' + NEWLINE;
   receipt += 'Tel: (555) 123-4567' + NEWLINE + NEWLINE;
   

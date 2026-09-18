@@ -96,8 +96,8 @@ export default function TrackOrder() {
             <ChevronLeft size={20} />
           </Button>
         </Link>
-        <div className="font-extrabold text-primary leading-none text-right">
-          OLIVE<br/>GROUNDS
+        <div className="font-extrabold text-primary leading-none text-right text-2xl tracking-tighter">
+          POSX
         </div>
       </header>
 

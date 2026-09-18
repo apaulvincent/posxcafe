@@ -71,9 +71,8 @@ const Topbar = ({ profile }: { profile: any }) => {
         {settings.logoUrl ? (
           <img src={settings.logoUrl} alt="Logo" className="h-16 object-contain" />
         ) : (
-          <div className="font-extrabold text-primary leading-none text-3xl tracking-tight">
-            OLIVE's<br/>
-            CAFE
+          <div className="font-extrabold text-primary leading-none text-4xl tracking-tighter">
+            POSX
           </div>
         )}
         <div className="text-sm font-medium text-primary">

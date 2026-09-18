@@ -47,7 +47,7 @@ export function useMFA() {
       const { data, error } = await supabase.auth.mfa.enroll({ 
         factorType: 'totp', 
         friendlyName,
-        issuer: 'Olive Grounds'
+        issuer: 'POSX'
       });
       if (error) throw error;
       

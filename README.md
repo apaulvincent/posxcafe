@@ -45,35 +45,52 @@ The application is built on a **Local-First, Sync-Later** architecture, bridging
 ### Prerequisites
 - Node.js (v18 or higher)
 - npm, yarn, or pnpm
-- A Supabase project (with PostgreSQL database setup)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (required for local Supabase)
+- Supabase CLI (`npm i -g supabase`)
 
-### Installation
+### Installation & Local Setup
 
-1. Clone the repository:
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/yourusername/posxcafe.git
    cd posxcafe
    ```
 
-2. Install dependencies:
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. Configure Environment Variables:
-   Create a `.env.local` file in the root directory based on the provided `.env.example` template:
+3. **Start Local Supabase & Seed Database:**
+   Ensure Docker Desktop is running, then initialize your local database:
+   ```bash
+   npx supabase start
+   ```
+   *This command spins up a complete Supabase stack locally. It automatically applies all database migrations and runs the `supabase/seed.sql` script to create your default roles.*
+
+   **Default Seeded Users:**
+   - **Admin:** `admin@posx.com` / Password: `admin123`
+   - **Cashier:** `cashier@posx.com` / PIN: `123456`
+
+4. **Configure Environment Variables:**
+   Create a `.env.local` file in the root directory and use the local keys provided by `supabase start`:
    ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   VITE_SUPABASE_URL=http://127.0.0.1:54321
+   VITE_SUPABASE_ANON_KEY=ey... (your local anon key)
    ```
 
-4. Start the development server:
+5. **Start the Frontend Development Server:**
    ```bash
    npm run dev
    ```
+
+### 🗄️ What about Dexie (IndexedDB)?
+
+You **do not** need to manually set up or migrate Dexie! Dexie runs completely inside your browser using the IndexedDB API. 
+
+When you start the app and load the page for the first time, Dexie automatically detects the schemas defined in `src/lib/db.ts` and creates the local database and stores on the fly. It is fully decoupled from the backend deployment process.
 
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome!
 Feel free to check the issues page if you want to contribute.
-

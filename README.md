@@ -28,7 +28,6 @@ Modern cafes and retail environments increasingly rely on cloud-based POS system
 - **Lightning-Fast POS Interface**: An intuitive cart interface supporting quick category filtering, global search, and dynamic discount calculations (percentage or flat amounts).
 - **Thermal Receipt Printing**: Built-in integrations for ESC/POS thermal receipt printers for fast kitchen ticketing and customer receipts.
 - **Admin & Catalog Management**: A comprehensive dashboard for managing the product catalog, categorized items, and sales statistics. Includes an embedded image cropper and media library for product photos.
-- **Advanced Security**: Integrated Multi-Factor Authentication (MFA) and OTP support for secure staff and admin logins.
 
 ## 🛠️ Technicalities & Architecture
 
@@ -45,10 +44,10 @@ The application is built on a **Local-First, Sync-Later** architecture, bridging
 ### Prerequisites
 - Node.js (v18 or higher)
 - npm, yarn, or pnpm
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (required for local Supabase)
 - Supabase CLI (`npm i -g supabase`)
+- A remote project created on [Supabase](https://supabase.com)
 
-### Installation & Local Setup
+### Installation & Online Supabase Setup
 
 1. **Clone the repository:**
    ```bash
@@ -61,34 +60,37 @@ The application is built on a **Local-First, Sync-Later** architecture, bridging
    npm install
    ```
 
-3. **Start Local Supabase & Seed Database:**
-   Ensure Docker Desktop is running, then initialize your local database:
+3. **Link to your Remote Supabase Project:**
+   Log in to Supabase CLI and link your local repository to your remote online project:
    ```bash
-   npx supabase start
+   npx supabase login
+   npx supabase link --project-ref <your-project-id>
    ```
-   *This command spins up a complete Supabase stack locally. It automatically applies all database migrations and runs the `supabase/seed.sql` script to create your default roles.*
+
+4. **Push Migrations to Remote Database:**
+   Push the database schema directly to your live Supabase project:
+   ```bash
+   npx supabase db push
+   ```
+
+5. **Seed the Remote Database:**
+   To set up the default Admin and Cashier accounts, copy the contents of `supabase/seed.sql` and run it in your project's **SQL Editor** on the Supabase dashboard.
 
    **Default Seeded Users:**
    - **Admin:** `admin@posx.com` / Password: `admin123`
    - **Cashier:** `cashier@posx.com` / PIN: `123456`
 
-4. **Configure Environment Variables:**
-   Create a `.env.local` file in the root directory and use the local keys provided by `supabase start`:
+6. **Configure Environment Variables:**
+   Create a `.env.local` file in the root directory and use the URL and API Keys from your Supabase Project Settings > API:
    ```env
-   VITE_SUPABASE_URL=http://127.0.0.1:54321
-   VITE_SUPABASE_ANON_KEY=ey... (your local anon key)
+   VITE_SUPABASE_URL=https://your-project-id.supabase.co
+   VITE_SUPABASE_ANON_KEY=ey... (your project anon key)
    ```
 
-5. **Start the Frontend Development Server:**
+7. **Start the Frontend Development Server:**
    ```bash
    npm run dev
    ```
-
-### 🗄️ What about Dexie (IndexedDB)?
-
-You **do not** need to manually set up or migrate Dexie! Dexie runs completely inside your browser using the IndexedDB API. 
-
-When you start the app and load the page for the first time, Dexie automatically detects the schemas defined in `src/lib/db.ts` and creates the local database and stores on the fly. It is fully decoupled from the backend deployment process.
 
 ## 🤝 Contributing
 

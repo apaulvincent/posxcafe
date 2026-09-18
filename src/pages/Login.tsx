@@ -1,14 +1,14 @@
+import { Loader2, Lock, Mail } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useAuth } from '../hooks/useAuth';
 import { useMFA } from '../hooks/useMFA';
 import { useSettings } from '../hooks/useSettings';
-import { Loader2, Lock, Mail } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { supabase } from '../lib/supabase';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -131,7 +131,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-lg border-none">
+      <Card className="w-full max-w-md shadow-2xl border border-muted/50 rounded-[2rem] p-2">
         <CardHeader className="text-center space-y-2 pb-6">
           {settings.logoUrl ? (
             <img src={settings.logoUrl} alt="Logo" className="h-20 mx-auto object-contain mb-4" />
@@ -140,7 +140,6 @@ export default function Login() {
               {settings.brandName || 'POSX'}
             </CardTitle>
           )}
-          <CardDescription>Staff Portal</CardDescription>
         </CardHeader>
         <CardContent>
           {(localError || mfaError) && (
@@ -162,9 +161,9 @@ export default function Login() {
             <>
               {needsLogin && (
                 <Tabs defaultValue="cashier" className="w-full">
-                  <TabsList className="flex w-full mb-8 h-12 bg-muted/50 rounded-xl p-1">
-                    <TabsTrigger value="cashier" className="flex-1 h-full rounded-lg text-base">Cashier</TabsTrigger>
-                    <TabsTrigger value="admin" className="flex-1 h-full rounded-lg text-base">Manager</TabsTrigger>
+                  <TabsList className="flex w-full mb-8 h-16 bg-muted/70 rounded-2xl p-1.5 border shadow-inner">
+                    <TabsTrigger value="cashier" className="flex-1 h-full rounded-xl text-lg font-bold data-[active]:shadow-md transition-all">Cashier</TabsTrigger>
+                    <TabsTrigger value="admin" className="flex-1 h-full rounded-xl text-lg font-bold data-[active]:shadow-md transition-all">Manager</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="cashier" className="animate-in fade-in duration-300">
@@ -178,7 +177,7 @@ export default function Login() {
                             maxLength={6}
                             value={pin} 
                             onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))} 
-                            className="pl-10 h-14 text-center tracking-[0.5rem] text-xl" 
+                            className="pl-10 h-16 text-center tracking-[0.75rem] text-2xl rounded-xl" 
                             required 
                             autoFocus
                             disabled={isTerminalLocked}
@@ -186,7 +185,7 @@ export default function Login() {
                         </div>
                       </div>
 
-                      <Button type="submit" disabled={isLoggingIn || isTerminalLocked} className="w-full h-12 text-base font-bold mt-2">
+                      <Button type="submit" disabled={isLoggingIn || isTerminalLocked} className="w-full h-14 rounded-xl text-lg font-bold mt-4">
                         {isLoggingIn ? <Loader2 className="animate-spin mr-2" /> : isTerminalLocked ? 'Terminal Locked' : 'Log In'}
                       </Button>
                     </form>
@@ -202,7 +201,7 @@ export default function Login() {
                             type="email" 
                             value={email} 
                             onChange={e => setEmail(e.target.value)} 
-                            className="pl-10 h-12" 
+                            className="pl-10 h-14 rounded-xl text-base" 
                             required 
                           />
                         </div>
@@ -216,13 +215,13 @@ export default function Login() {
                             type="password" 
                             value={password} 
                             onChange={e => setPassword(e.target.value)} 
-                            className="pl-10 h-12" 
+                            className="pl-10 h-14 rounded-xl text-base" 
                             required 
                           />
                         </div>
                       </div>
 
-                      <Button type="submit" disabled={isLoggingIn} className="w-full h-12 text-base font-bold mt-2">
+                      <Button type="submit" disabled={isLoggingIn} className="w-full h-14 rounded-xl text-lg font-bold mt-4">
                         {isLoggingIn ? <Loader2 className="animate-spin mr-2" /> : 'Log In'}
                       </Button>
                     </form>

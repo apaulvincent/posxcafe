@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useSettings, DEFAULT_SETTINGS, type AppSettings } from '../../hooks/useSettings';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { supabase } from '../../lib/supabase';
-import { Loader2, Upload, X, RotateCcw } from 'lucide-react';
+import { Loader2, Upload, X, RotateCcw, Check } from 'lucide-react';
 
 const CURRENCIES = [
   { symbol: '₱', name: 'Philippine Peso (PHP)' },
@@ -20,7 +20,15 @@ export default function Settings() {
   const { currencySymbol, setCurrencySymbol } = useCurrency();
   const [formData, setFormData] = useState<AppSettings>(settings);
   const [isUploading, setIsUploading] = useState(false);
+  const [saved, setSaved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const saveTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    };
+  }, []);
 
   const handleColorChange = (key: keyof AppSettings['colors'], value: string) => {
     setFormData(prev => ({
@@ -34,7 +42,9 @@ export default function Settings() {
 
   const handleSave = () => {
     saveSettings(formData);
-    alert('Settings saved successfully!');
+    setSaved(true);
+    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = window.setTimeout(() => setSaved(false), 2500);
   };
 
   const handleResetColors = () => {
@@ -224,7 +234,13 @@ export default function Settings() {
         </div>
       </Card>
 
-      <div className="flex justify-end pt-4">
+      <div className="flex items-center justify-end gap-4 pt-4">
+        {saved && (
+          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600">
+            <Check size={16} />
+            Settings saved
+          </span>
+        )}
         <Button onClick={handleSave} className="rounded-full h-12 px-8 font-bold shadow-md">
           Save Settings
         </Button>

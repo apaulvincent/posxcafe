@@ -2,9 +2,10 @@ import React, { useState, useRef } from 'react';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { useSettings, type AppSettings } from '../../hooks/useSettings';
+import { useSettings, DEFAULT_SETTINGS, type AppSettings } from '../../hooks/useSettings';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { supabase } from '../../lib/supabase';
+import { Loader2, Upload, X, RotateCcw } from 'lucide-react';
 
 const CURRENCIES = [
   { symbol: '₱', name: 'Philippine Peso (PHP)' },
@@ -13,7 +14,6 @@ const CURRENCIES = [
   { symbol: '£', name: 'British Pound (GBP)' },
   { symbol: '¥', name: 'Japanese Yen (JPY)' },
 ];
-import { Loader2, Upload, X } from 'lucide-react';
 
 export default function Settings() {
   const { settings, saveSettings } = useSettings();
@@ -35,6 +35,13 @@ export default function Settings() {
   const handleSave = () => {
     saveSettings(formData);
     alert('Settings saved successfully!');
+  };
+
+  const handleResetColors = () => {
+    setFormData(prev => ({
+      ...prev,
+      colors: { ...DEFAULT_SETTINGS.colors }
+    }));
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,7 +145,19 @@ export default function Settings() {
 
 
       <Card className="rounded-3xl border-none shadow-sm p-6">
-        <h2 className="text-xl font-bold mb-4">Theme Colors</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">Theme Colors</h2>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleResetColors}
+            className="text-muted-foreground hover:text-foreground gap-1.5"
+          >
+            <RotateCcw size={14} />
+            Reset Defaults
+          </Button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
           <ColorPicker 

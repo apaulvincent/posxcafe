@@ -39,7 +39,7 @@ export const getSettings = (): AppSettings => {
         requireCashierMFA: parsed.requireCashierMFA ?? DEFAULT_SETTINGS.requireCashierMFA,
         colors: { ...DEFAULT_SETTINGS.colors, ...(parsed.colors || {}) }
       };
-    } catch (e) {
+    } catch {
       return DEFAULT_SETTINGS;
     }
   }
@@ -59,12 +59,7 @@ export function useSettings() {
 
   useEffect(() => {
     const handleUpdate = () => {
-      const saved = localStorage.getItem('appSettings');
-      if (saved) {
-        try {
-          setSettingsState(JSON.parse(saved));
-        } catch (e) {}
-      }
+      setSettingsState(getSettings());
     };
     window.addEventListener('settings-updated', handleUpdate);
     return () => window.removeEventListener('settings-updated', handleUpdate);
@@ -107,12 +102,23 @@ export function hexToHsl(hex: string): string {
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
+const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+const THEME_COLOR_VARS: Array<[keyof AppSettings['colors'], string]> = [
+  ['primary', '--primary'],
+  ['secondary', '--secondary'],
+  ['tertiary', '--tertiary'],
+  ['error', '--destructive'],
+  ['warning', '--warning'],
+  ['info', '--info'],
+];
+
 export function applyThemeColors(colors: AppSettings['colors']) {
   const root = document.documentElement;
-  if (colors.primary) root.style.setProperty('--primary', hexToHsl(colors.primary));
-  if (colors.secondary) root.style.setProperty('--secondary', hexToHsl(colors.secondary));
-  if (colors.tertiary) root.style.setProperty('--tertiary', hexToHsl(colors.tertiary));
-  if (colors.error) root.style.setProperty('--destructive', hexToHsl(colors.error));
-  if (colors.warning) root.style.setProperty('--warning', hexToHsl(colors.warning));
-  if (colors.info) root.style.setProperty('--info', hexToHsl(colors.info));
+  for (const [key, cssVar] of THEME_COLOR_VARS) {
+    const value = colors[key];
+    if (value && HEX_COLOR_RE.test(value)) {
+      root.style.setProperty(cssVar, hexToHsl(value));
+    }
+  }
 }

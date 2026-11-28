@@ -249,6 +249,14 @@ export default function Settings() {
   );
 }
 
+function toPickerHex(value: string): string {
+  if (/^#[0-9a-fA-F]{6}$/.test(value)) return value;
+  if (/^#[0-9a-fA-F]{3}$/.test(value)) {
+    return `#${value[1]}${value[1]}${value[2]}${value[2]}${value[3]}${value[3]}`;
+  }
+  return '#000000';
+}
+
 function ColorPicker({ label, value, onChange }: { label: string, value: string, onChange: (val: string) => void }) {
   return (
     <div className="flex flex-col gap-2">
@@ -256,7 +264,7 @@ function ColorPicker({ label, value, onChange }: { label: string, value: string,
       <div className="flex gap-3 items-center">
         <input 
           type="color" 
-          value={value} 
+          value={toPickerHex(value)} 
           onChange={e => onChange(e.target.value)}
           className="w-12 h-12 rounded cursor-pointer border-0 p-0"
         />
@@ -264,6 +272,8 @@ function ColorPicker({ label, value, onChange }: { label: string, value: string,
           type="text" 
           value={value} 
           onChange={e => onChange(e.target.value)}
+          maxLength={7}
+          placeholder="#000000"
           className="w-28 font-mono uppercase"
         />
       </div>
